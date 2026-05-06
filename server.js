@@ -13,19 +13,18 @@ app.use(cors({
 app.options('*', cors());
 app.use(express.json());
 
-const SPREADSHEET_ID = '1iIakXw5KWssAsAL7v1hP4Zkf5edfZjXJAcCJ663cekY';
-const ADMIN_PASSWORD = 'V088';
+const SPREADSHEET_ID = '1yQxFcyCoJ8_sNU9ztFGfcyI57gqq5Dd1iJqPo8WShks';
+const ADMIN_PASSWORD = '9894';
 const VENDEDORES_FILE = path.join(__dirname, 'vendedores.json');
 const SERVICE_ACCOUNT = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT);
 
 const VENDEDORES_DEFAULT = [
-  { nome: 'Joedres',    codigo: 'V088', aba: 'Joedres - V088' },
-  { nome: 'Rosemeire',  codigo: 'V420', aba: 'Rosemeire - V420' },
-  { nome: 'Cavalcante', codigo: 'V980', aba: 'Cavalcante - V980' },
-  { nome: 'Isabelly',   codigo: 'V981', aba: 'Isabelly - V981' },
-  { nome: 'João Faria', codigo: 'V982', aba: 'João Faria - V982' },
-  { nome: 'Jennifer',   codigo: 'V1003', aba: 'Jennifer - V1003' },
-  { nome: 'Juliana',    codigo: 'V1012', aba: 'Juliana - V1012' },
+  { nome: 'Camilli', codigo: 'V737', aba: 'Camilli Cerutti - V737' },
+  { nome: 'Ana',     codigo: 'V888', aba: 'Ana Carolina - V888' },
+  { nome: 'Solange', codigo: 'V865', aba: 'Solange Rodrigues - V865' },
+  { nome: 'Laila',   codigo: 'V749', aba: 'Laila Cesário - V749' },
+  { nome: 'Tiane',   codigo: 'V881', aba: 'Tiane Brito - V881' },
+  { nome: 'Henrique',codigo: 'V823', aba: 'Henrique Brito - V823' },
 ];
 
 function loadVendedores() {
