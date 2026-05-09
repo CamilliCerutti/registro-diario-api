@@ -389,10 +389,9 @@ app.get('/taxas-periodo', async (req, res) => {
 
 // Status de preenchimento do time em uma data (admin)
 app.get('/status-time', async (req, res) => {
-  const { team } = req.query;
+  const { team, data } = req.query;
   if (!checkTeamAdmin(req, res, team)) return;
   try {
-    const { data, team } = req.query;
     if (!data || !team) return res.status(400).json({ erro: 'data e team são obrigatórios' });
 
     const sup = getTeam(team);
@@ -437,10 +436,9 @@ app.get('/status-time', async (req, res) => {
 
 // Vendas do time em uma data (admin)
 app.get('/vendas-time', async (req, res) => {
-  const { team } = req.query;
+  const { team, data } = req.query;
   if (!checkTeamAdmin(req, res, team)) return;
   try {
-    const { data, team } = req.query;
     if (!data || !team) return res.status(400).json({ erro: 'data e team são obrigatórios' });
 
     const sup = getTeam(team);
