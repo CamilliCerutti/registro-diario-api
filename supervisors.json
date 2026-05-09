@@ -1,0 +1,103 @@
+[
+  {
+    "id": "eagles",
+    "name": "Camilli Cerutti",
+    "teamName": "Eagles",
+    "color": "#22d471",
+    "crmSheetId": "1yQxFcyCoJ8_sNU9ztFGfcyI57gqq5Dd1iJqPo8WShks",
+    "supervisorCode": "V737",
+    "vendors": [
+      {
+        "code": "V823",
+        "name": "Henrique Brito",
+        "crmTab": "Henrique Brito - V823",
+        "fixedCost": 1500,
+        "isSupervisor": false,
+        "startDate": "2025-12-22",
+        "exitDate": null,
+        "meta": { "day": 0, "week": 2, "month": 8, "value": 2167, "headcounts": 20 }
+      },
+      {
+        "code": "V865",
+        "name": "Solange Rodrigues",
+        "crmTab": "Solange Rodrigues - V865",
+        "fixedCost": 1500,
+        "isSupervisor": false,
+        "startDate": "2026-01-27",
+        "exitDate": null,
+        "meta": { "day": 0, "week": 2, "month": 8, "value": 2167, "headcounts": 20 }
+      },
+      {
+        "code": "V866",
+        "name": "Marco Plá",
+        "crmTab": "Marco Plá - V866",
+        "fixedCost": 1500,
+        "isSupervisor": false,
+        "startDate": "2026-01-27",
+        "exitDate": "2026-03-31",
+        "meta": { "day": 0, "week": 2, "month": 8, "value": 2167, "headcounts": 20 }
+      },
+      {
+        "code": "V881",
+        "name": "Tiane Brito",
+        "crmTab": "Tiane Brito - V881",
+        "fixedCost": 1800,
+        "isSupervisor": false,
+        "startDate": "2026-02-09",
+        "exitDate": null,
+        "meta": { "day": 0, "week": 2, "month": 8, "value": 2561, "headcounts": 20 }
+      },
+      {
+        "code": "V888",
+        "name": "Ana Carolina",
+        "crmTab": "Ana Carolina - V888",
+        "fixedCost": 1500,
+        "isSupervisor": false,
+        "startDate": "2026-02-12",
+        "exitDate": null,
+        "meta": { "day": 0, "week": 2, "month": 8, "value": 2167, "headcounts": 20 }
+      },
+      {
+        "code": "V749",
+        "name": "Laila Cesário",
+        "crmTab": "Laila Cesário - V749",
+        "fixedCost": 1800,
+        "isSupervisor": false,
+        "startDate": "2025-10-22",
+        "exitDate": null,
+        "meta": { "day": 0, "week": 2, "month": 8, "value": 2561, "headcounts": 20 }
+      },
+      {
+        "code": "V459",
+        "name": "Lucille Lima",
+        "crmTab": "Lucille Lima - V459",
+        "fixedCost": 1500,
+        "isSupervisor": false,
+        "startDate": "2025-08-19",
+        "exitDate": "2026-03-06",
+        "meta": { "day": 0, "week": 2, "month": 8, "value": 2167, "headcounts": 20 }
+      },
+      {
+        "code": "V1054",
+        "name": "Indyra Matos",
+        "crmTab": "Indyra Matos - V1054",
+        "fixedCost": 1500,
+        "isSupervisor": false,
+        "startDate": "2026-05-06",
+        "exitDate": null,
+        "meta": { "day": 0, "week": 2, "month": 11, "value": 2164, "headcounts": 22 }
+      },
+      {
+        "code": "V737",
+        "name": "Camilli Cerutti",
+        "crmTab": "Camilli Cerutti - V737",
+        "fixedCost": 3000,
+        "isSupervisor": true,
+        "startDate": "2025-10-22",
+        "exitDate": null,
+        "meta": { "day": 0, "week": 2, "month": 8, "value": 5000, "headcounts": 20 }
+      }
+    ],
+    "groups": []
+  }
+]

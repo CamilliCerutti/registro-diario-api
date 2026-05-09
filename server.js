@@ -1,8 +1,12 @@
+// ============================================================
+// REGISTRO DIÁRIO API v2
+// Multi-time · Grupos · Imersões · GitHub Persistence
+// Repo: CamilliCerutti/registro-diario-api
+// ============================================================
 const express = require('express');
-const cors = require('cors');
+const cors    = require('cors');
+const https   = require('https');
 const { google } = require('googleapis');
-const fs = require('fs');
-const path = require('path');
 
 const app = express();
 app.use(cors({
@@ -13,42 +17,108 @@ app.use(cors({
 app.options('*', cors());
 app.use(express.json());
 
-const SPREADSHEET_ID = '1yQxFcyCoJ8_sNU9ztFGfcyI57gqq5Dd1iJqPo8WShks';
-const ADMIN_PASSWORD = '9894';
-const VENDEDORES_FILE = path.join(__dirname, 'vendedores.json');
-const SERVICE_ACCOUNT = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT);
+// ============================================================
+// ENV
+// ============================================================
+const ADMIN_PASSWORD  = process.env.ADMIN_PASSWORD  || '9894';
+const GITHUB_TOKEN    = process.env.GITHUB_TOKEN    || '';
+const GITHUB_REPO     = process.env.GITHUB_REPO     || 'CamilliCerutti/registro-diario-api';
+const SERVICE_ACCOUNT = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT || '{}');
 
-const VENDEDORES_DEFAULT = [
-  { nome: 'Camilli', codigo: 'V737', aba: 'Camilli Cerutti - V737' },
-  { nome: 'Ana',     codigo: 'V888', aba: 'Ana Carolina - V888' },
-  { nome: 'Solange', codigo: 'V865', aba: 'Solange Rodrigues - V865' },
-  { nome: 'Laila',   codigo: 'V749', aba: 'Laila Cesário - V749' },
-  { nome: 'Tiane',   codigo: 'V881', aba: 'Tiane Brito - V881' },
-  { nome: 'Henrique',codigo: 'V823', aba: 'Henrique Brito - V823' },
-];
+// Exibido no popup de instrução ao criar novo time
+const SERVICE_ACCOUNT_EMAIL = 'registro-diario@registro-diario-495519.iam.gserviceaccount.com';
 
-function loadVendedores() {
+// ============================================================
+// ESTADO (carregado do GitHub na inicialização)
+// supervisors.json → lista de times, vendedores e grupos
+// config.json      → imersões globais
+// ============================================================
+let SUPERVISORS   = [];
+let GLOBAL_CONFIG = { immersions: [], updatedAt: null };
+
+// ============================================================
+// GITHUB PERSISTENCE
+// Toda mutação salva no GitHub → sobrevive ao sono do Render
+// ============================================================
+function githubRequest(method, path, body) {
+  return new Promise((resolve, reject) => {
+    const data = body ? JSON.stringify(body) : null;
+    const req  = https.request(
+      {
+        hostname: 'api.github.com',
+        path,
+        method,
+        headers: {
+          Authorization:  `token ${GITHUB_TOKEN}`,
+          Accept:         'application/vnd.github.v3+json',
+          'User-Agent':   'registro-diario-api',
+          ...(data && {
+            'Content-Type':   'application/json',
+            'Content-Length': Buffer.byteLength(data),
+          }),
+        },
+      },
+      res => {
+        let raw = '';
+        res.on('data', d => (raw += d));
+        res.on('end', () => {
+          try { resolve({ status: res.statusCode, body: JSON.parse(raw) }); }
+          catch { resolve({ status: res.statusCode, body: raw }); }
+        });
+      }
+    );
+    req.on('error', reject);
+    if (data) req.write(data);
+    req.end();
+  });
+}
+
+async function ghGet(filename) {
+  if (!GITHUB_TOKEN) return null;
   try {
-    if (fs.existsSync(VENDEDORES_FILE)) {
-      return JSON.parse(fs.readFileSync(VENDEDORES_FILE, 'utf8'));
+    const r = await githubRequest('GET', `/repos/${GITHUB_REPO}/contents/${filename}`);
+    if (r.status === 200 && r.body.content) {
+      return {
+        data: JSON.parse(Buffer.from(r.body.content, 'base64').toString('utf8')),
+        sha:  r.body.sha,
+      };
     }
-  } catch (e) { console.error('Erro ao carregar vendedores:', e.message); }
-  return [...VENDEDORES_DEFAULT];
+  } catch (e) { console.warn(`ghGet ${filename}:`, e.message); }
+  return null;
 }
 
-function saveVendedores(v) {
-  try { fs.writeFileSync(VENDEDORES_FILE, JSON.stringify(v, null, 2)); }
-  catch (e) { console.error('Erro ao salvar vendedores:', e.message); }
+async function ghSave(filename, data) {
+  if (!GITHUB_TOKEN) { console.warn('⚠️  GITHUB_TOKEN não configurado'); return false; }
+  try {
+    const ex      = await ghGet(filename);
+    const content = Buffer.from(JSON.stringify(data, null, 2)).toString('base64');
+    const r = await githubRequest('PUT', `/repos/${GITHUB_REPO}/contents/${filename}`, {
+      message: `update: ${filename} ${new Date().toISOString().slice(0, 16)}`,
+      content,
+      ...(ex && { sha: ex.sha }),
+    });
+    return r.status === 200 || r.status === 201;
+  } catch (e) { console.warn(`ghSave ${filename}:`, e.message); return false; }
 }
 
-function checkAdmin(req, res) {
-  if (req.headers['x-admin-password'] !== ADMIN_PASSWORD) {
-    res.status(401).json({ erro: 'Senha incorreta' });
-    return false;
+async function loadFromGitHub() {
+  const s = await ghGet('supervisors.json');
+  if (s && Array.isArray(s.data) && s.data.length > 0) {
+    SUPERVISORS = s.data;
+    console.log(`✅ Supervisors carregados: ${SUPERVISORS.length}`);
+  } else {
+    console.warn('⚠️  supervisors.json não encontrado ou vazio no GitHub');
   }
-  return true;
+  const c = await ghGet('config.json');
+  if (c && c.data) {
+    GLOBAL_CONFIG = c.data;
+    console.log('✅ Config carregado');
+  }
 }
 
+// ============================================================
+// GOOGLE SHEETS CLIENT
+// ============================================================
 async function getSheetsClient() {
   const auth = new google.auth.GoogleAuth({
     credentials: SERVICE_ACCOUNT,
@@ -57,8 +127,51 @@ async function getSheetsClient() {
   return google.sheets({ version: 'v4', auth: await auth.getClient() });
 }
 
-async function encontrarLinhaData(sheets, aba, dataBR) {
-  const res = await sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: `'${aba}'!B:B` });
+// ============================================================
+// IMERSÕES — COUNTDOWN
+// ============================================================
+function calcImmersionCountdowns() {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return (GLOBAL_CONFIG.immersions || [])
+    .map(im => {
+      const start = new Date(im.startDate + 'T00:00:00');
+      const days  = Math.ceil((start - today) / 86400000);
+      return { ...im, daysUntil: days, isHappening: days === 0, isPast: days < 0 };
+    })
+    .sort((a, b) => a.startDate.localeCompare(b.startDate));
+}
+
+// ============================================================
+// CRM — HELPERS DE LINHA/DATA (lógica original preservada)
+// Semana 1: cabeçalho linha 4, dados linhas 5-11
+// Bloco = 11 linhas. Âncora = 31/12/2025
+// ============================================================
+const PRIMEIRA_DATA        = new Date(2025, 11, 31);
+const LINHAS_POR_BLOCO     = 11;
+const PRIMEIRA_LINHA_DADOS = 5;
+
+function datePorLinha(linha) {
+  const diaIndex    = linha - PRIMEIRA_LINHA_DADOS;
+  if (diaIndex < 0) return null;
+  const semana      = Math.floor(diaIndex / LINHAS_POR_BLOCO);
+  const diaNaSemana = diaIndex % LINHAS_POR_BLOCO;
+  if (diaNaSemana > 6) return null;
+  const d = new Date(PRIMEIRA_DATA);
+  d.setDate(d.getDate() + semana * 7 + diaNaSemana);
+  return d;
+}
+
+function parseTempo(val) {
+  if (!val || val === '0:00' || val === '0:00:00') return 0;
+  const p = val.toString().split(':');
+  if (p.length === 3) return parseInt(p[0]) * 3600 + parseInt(p[1]) * 60 + parseInt(p[2]);
+  if (p.length === 2) return parseInt(p[0]) * 3600 + parseInt(p[1]) * 60;
+  return 0;
+}
+
+async function encontrarLinhaData(sheets, spreadsheetId, aba, dataBR) {
+  const res  = await sheets.spreadsheets.values.get({ spreadsheetId, range: `'${aba}'!B:B` });
   const rows = res.data.values || [];
   for (let i = 0; i < rows.length; i++) {
     const cell = (rows[i][0] || '').toString().trim();
@@ -69,8 +182,8 @@ async function encontrarLinhaData(sheets, aba, dataBR) {
   return null;
 }
 
-async function encontrarLinhaVenda(sheets, aba) {
-  const res = await sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: `'${aba}'!W:W` });
+async function encontrarLinhaVenda(sheets, spreadsheetId, aba) {
+  const res  = await sheets.spreadsheets.values.get({ spreadsheetId, range: `'${aba}'!W:W` });
   const rows = res.data.values || [];
   for (let i = 1; i < rows.length; i++) {
     if (!rows[i] || !rows[i][0] || !rows[i][0].toString().trim()) return i + 1;
@@ -78,84 +191,24 @@ async function encontrarLinhaVenda(sheets, aba) {
   return rows.length + 1;
 }
 
-// Vendedores
-app.get('/vendedores', (req, res) => res.json(loadVendedores()));
-
-app.post('/vendedores', (req, res) => {
-  if (!checkAdmin(req, res)) return;
-  const { nome, codigo, aba } = req.body;
-  if (!nome || !codigo || !aba) return res.status(400).json({ erro: 'Nome, código e aba são obrigatórios' });
-  const vendedores = loadVendedores();
-  if (vendedores.find(v => v.codigo === codigo)) return res.status(400).json({ erro: `Código ${codigo} já existe` });
-  vendedores.push({ nome, codigo, aba });
-  saveVendedores(vendedores);
-  res.json({ ok: true, vendedores });
-});
-
-app.delete('/vendedores/:codigo', (req, res) => {
-  if (!checkAdmin(req, res)) return;
-  let vendedores = loadVendedores();
-  const antes = vendedores.length;
-  vendedores = vendedores.filter(v => v.codigo !== req.params.codigo);
-  if (vendedores.length === antes) return res.status(404).json({ erro: 'Vendedor não encontrado' });
-  saveVendedores(vendedores);
-  res.json({ ok: true, vendedores });
-});
-
-app.post('/admin/verificar', (req, res) => {
-  res.json({ ok: req.headers['x-admin-password'] === ADMIN_PASSWORD });
-});
-
-// ─── TAXAS POR PERÍODO ───────────────────────────────────────
-// Estrutura da planilha:
-// Semana 1: cabeçalho linha 4, dados linhas 5-11
-// Semana 2: cabeçalho linha 15, dados linhas 16-22
-// Cada bloco = 11 linhas. Primeira data = 31/12/2025
-const PRIMEIRA_DATA = new Date(2025, 11, 31); // 31/12/2025
-const LINHAS_POR_BLOCO = 11;
-const PRIMEIRA_LINHA_DADOS = 5;
-
-function datePorLinha(linha) {
-  // Calcula qual data corresponde a uma linha de dados
-  const diaIndex = linha - PRIMEIRA_LINHA_DADOS;
-  if (diaIndex < 0) return null;
-  const semana = Math.floor(diaIndex / LINHAS_POR_BLOCO);
-  const diaNaSemana = diaIndex % LINHAS_POR_BLOCO;
-  if (diaNaSemana > 6) return null; // linha de total ou cabeçalho
-  const d = new Date(PRIMEIRA_DATA);
-  d.setDate(d.getDate() + semana * 7 + diaNaSemana);
-  return d;
-}
-
-function parseTempo(val) {
-  // Converte "HH:MM:SS" ou "H:MM:SS" para segundos
-  if (!val || val === '0:00' || val === '0:00:00') return 0;
-  const parts = val.toString().split(':');
-  if (parts.length === 3) return parseInt(parts[0])*3600 + parseInt(parts[1])*60 + parseInt(parts[2]);
-  if (parts.length === 2) return parseInt(parts[0])*3600 + parseInt(parts[1])*60;
-  return 0;
-}
-
-// Função auxiliar: calcula totais de uma aba entre duas datas
-async function calcularTotaisAba(sheets, aba, dataInicio, dataFim) {
-  const result = await sheets.spreadsheets.values.get({
-    spreadsheetId: SPREADSHEET_ID,
-    range: `'${aba}'!C:F`,
-  });
-  const rows = result.data.values || [];
+async function calcularTotaisAba(sheets, spreadsheetId, aba, dataInicio, dataFim) {
+  const result = await sheets.spreadsheets.values.get({ spreadsheetId, range: `'${aba}'!C:F` });
+  const rows   = result.data.values || [];
   let totalSegundos = 0, totalAtenderam = 0, totalEntrevistas = 0, totalHeadcounts = 0, diasComDados = 0;
   rows.forEach((row, i) => {
     const data = datePorLinha(i + 1);
     if (!data) return;
-    data.setHours(0,0,0,0);
+    data.setHours(0, 0, 0, 0);
     if (data < dataInicio || data > dataFim) return;
     const horas = parseTempo(row[0]);
     const atend = parseInt(row[1]) || 0;
     const entrv = parseInt(row[2]) || 0;
     const head  = parseInt(row[3]) || 0;
     if (horas > 0 || atend > 0 || entrv > 0 || head > 0) {
-      totalSegundos += horas; totalAtenderam += atend;
-      totalEntrevistas += entrv; totalHeadcounts += head;
+      totalSegundos += horas;
+      totalAtenderam += atend;
+      totalEntrevistas += entrv;
+      totalHeadcounts += head;
       diasComDados++;
     }
   });
@@ -164,162 +217,270 @@ async function calcularTotaisAba(sheets, aba, dataInicio, dataFim) {
 
 function formatarResultado(totais) {
   const { totalSegundos, totalAtenderam, totalEntrevistas, totalHeadcounts, diasComDados } = totais;
-  const th = Math.floor(totalSegundos / 3600);
-  const tm = Math.floor((totalSegundos % 3600) / 60);
-  const txAtend = totalAtenderam > 0 ? Math.round(totalEntrevistas / totalAtenderam * 100) : 0;
-  const txHead  = totalEntrevistas > 0 ? Math.round(totalHeadcounts / totalEntrevistas * 100) : 0;
+  const th      = Math.floor(totalSegundos / 3600);
+  const tm      = Math.floor((totalSegundos % 3600) / 60);
+  const txAtend = totalAtenderam   > 0 ? Math.round((totalEntrevistas / totalAtenderam)   * 100) : 0;
+  const txHead  = totalEntrevistas > 0 ? Math.round((totalHeadcounts  / totalEntrevistas) * 100) : 0;
   let pace = '—';
   if (totalHeadcounts > 0 && totalSegundos > 0) {
     const spv = Math.round(totalSegundos / totalHeadcounts);
-    const ph = Math.floor(spv / 3600), pm = Math.floor((spv % 3600) / 60);
-    pace = ph > 0 ? `${ph}h${String(pm).padStart(2,'0')}min` : `${pm}min`;
+    const ph  = Math.floor(spv / 3600);
+    const pm  = Math.floor((spv % 3600) / 60);
+    pace = ph > 0 ? `${ph}h${String(pm).padStart(2, '0')}min` : `${pm}min`;
   }
   return {
     diasComDados,
-    totalHoras: `${th}h ${String(tm).padStart(2,'0')}min`,
+    totalHoras: `${th}h ${String(tm).padStart(2, '0')}min`,
     totalAtenderam, totalEntrevistas, totalHeadcounts,
     txAtend: `${txAtend}%`, txHead: `${txHead}%`, pace,
   };
 }
 
-// ─── TAXAS POR PERÍODO PERSONALIZADO ─────────────────────────
+// ============================================================
+// AUTH / UTILS
+// ============================================================
+function checkAdmin(req, res) {
+  const pwd = req.headers['x-admin-password'] || req.body?.password;
+  if (pwd !== ADMIN_PASSWORD) { res.status(401).json({ erro: 'Senha incorreta' }); return false; }
+  return true;
+}
+
+function getTeam(teamId) {
+  return SUPERVISORS.find(s => s.id === teamId) || null;
+}
+
+function parseDatesBR(inicio, fim) {
+  const [di, mi, ai] = inicio.split('/');
+  const [df, mf, af] = fim.split('/');
+  const dataInicio = new Date(parseInt(ai), parseInt(mi) - 1, parseInt(di));
+  const dataFim    = new Date(parseInt(af), parseInt(mf) - 1, parseInt(df));
+  dataInicio.setHours(0, 0, 0, 0);
+  dataFim.setHours(0, 0, 0, 0);
+  return { dataInicio, dataFim };
+}
+
+// ============================================================
+// ROTAS PÚBLICAS
+// ============================================================
+
+app.get('/', (_, res) => res.json({
+  status: 'ok', servico: 'Registro Diário API v2',
+}));
+
+app.get('/health', (_, res) => res.json({ ok: true, teams: SUPERVISORS.length }));
+
+// Lista de times (sem dados sensíveis — usada pelo frontend para roteamento ?team=)
+app.get('/api/teams', (_, res) => {
+  res.json(SUPERVISORS.map(s => ({
+    id:       s.id,
+    name:     s.name,
+    teamName: s.teamName,
+    color:    s.color,
+  })));
+});
+
+// Config global + countdown das imersões
+app.get('/api/config', (_, res) => {
+  res.json({ ...GLOBAL_CONFIG, immersions: calcImmersionCountdowns() });
+});
+
+// Vendedores de um time específico (isolado por ?team=)
+app.get('/vendedores', (req, res) => {
+  const { team } = req.query;
+  if (!team) return res.status(400).json({ erro: 'Parâmetro ?team= é obrigatório' });
+  const sup = getTeam(team);
+  if (!sup) return res.status(404).json({ erro: 'Time não encontrado' });
+  res.json(sup.vendors || []);
+});
+
+// Grupos de um time com membros resolvidos e imersões atribuídas
+app.get('/api/grupos', (req, res) => {
+  const { team } = req.query;
+  if (!team) return res.status(400).json({ erro: 'Parâmetro ?team= é obrigatório' });
+  const sup = getTeam(team);
+  if (!sup) return res.status(404).json({ erro: 'Time não encontrado' });
+
+  const allImersoes = calcImmersionCountdowns();
+  const grupos = (sup.groups || []).map(g => {
+    const members     = (sup.vendors || []).filter(v => (g.vendorCodes || []).includes(v.code));
+    const immersions  = allImersoes.filter(im => (g.immersionIds || []).includes(im.id));
+    const hcPerVendor = members.length > 0 ? Math.ceil(g.hcGoal / members.length) : 0;
+    return { ...g, members, immersions, hcPerVendor };
+  });
+  res.json(grupos);
+});
+
+// Progresso de headcounts de um grupo em um período
+app.get('/api/grupo-progresso', async (req, res) => {
+  try {
+    const { team, groupId, inicio, fim } = req.query;
+    if (!team || !groupId || !inicio || !fim)
+      return res.status(400).json({ erro: 'team, groupId, inicio (DD/MM/YYYY) e fim são obrigatórios' });
+
+    const sup = getTeam(team);
+    if (!sup) return res.status(404).json({ erro: 'Time não encontrado' });
+    const group = (sup.groups || []).find(g => g.id === groupId);
+    if (!group) return res.status(404).json({ erro: 'Grupo não encontrado' });
+
+    const { dataInicio, dataFim } = parseDatesBR(inicio, fim);
+    if (isNaN(dataInicio) || isNaN(dataFim)) return res.status(400).json({ erro: 'Datas inválidas' });
+
+    const members     = (sup.vendors || []).filter(v => (group.vendorCodes || []).includes(v.code));
+    const hcPerVendor = members.length > 0 ? Math.ceil(group.hcGoal / members.length) : 0;
+    const sheets      = await getSheetsClient();
+
+    const memberResults = await Promise.all(
+      members.map(async v => {
+        try {
+          const totais = await calcularTotaisAba(sheets, sup.crmSheetId, v.crmTab, dataInicio, dataFim);
+          return {
+            code: v.code, name: v.name,
+            headcounts: totais.totalHeadcounts,
+            hcMeta:     hcPerVendor,
+            pct:        hcPerVendor > 0 ? Math.round((totais.totalHeadcounts / hcPerVendor) * 100) : 0,
+            ...formatarResultado(totais),
+          };
+        } catch (e) {
+          return { code: v.code, name: v.name, headcounts: 0, hcMeta: hcPerVendor, pct: 0, erro: e.message };
+        }
+      })
+    );
+
+    const totalHC = memberResults.reduce((s, m) => s + (m.headcounts || 0), 0);
+    res.json({
+      groupId, groupName: group.name, hcGoal: group.hcGoal, color: group.color,
+      totalHC,
+      pct:       group.hcGoal > 0 ? Math.round((totalHC / group.hcGoal) * 100) : 0,
+      members:   memberResults,
+      immersions: calcImmersionCountdowns().filter(im => (group.immersionIds || []).includes(im.id)),
+    });
+  } catch (e) { res.status(500).json({ erro: e.message }); }
+});
+
+// Taxas por período
 app.get('/taxas-periodo', async (req, res) => {
   try {
-    const { aba, inicio, fim } = req.query;
-    if (!aba || !inicio || !fim) return res.status(400).json({ erro: 'Aba, inicio e fim são obrigatórios' });
+    const { aba, inicio, fim, team } = req.query;
+    if (!aba || !inicio || !fim || !team)
+      return res.status(400).json({ erro: 'aba, inicio, fim e team são obrigatórios' });
 
-    // Datas no formato DD/MM/YYYY
-    const [di, mi, ai] = inicio.split('/');
-    const [df, mf, af] = fim.split('/');
-    const dataInicio = new Date(parseInt(ai), parseInt(mi)-1, parseInt(di));
-    const dataFim    = new Date(parseInt(af), parseInt(mf)-1, parseInt(df));
-    dataInicio.setHours(0,0,0,0); dataFim.setHours(0,0,0,0);
+    const sup = getTeam(team);
+    if (!sup) return res.status(404).json({ erro: 'Time não encontrado' });
 
+    const { dataInicio, dataFim } = parseDatesBR(inicio, fim);
     if (isNaN(dataInicio) || isNaN(dataFim)) return res.status(400).json({ erro: 'Datas inválidas. Use DD/MM/YYYY' });
     if (dataInicio > dataFim) return res.status(400).json({ erro: 'Data início não pode ser maior que data fim' });
 
     const sheets = await getSheetsClient();
-    const totais = await calcularTotaisAba(sheets, aba, dataInicio, dataFim);
+    const totais = await calcularTotaisAba(sheets, sup.crmSheetId, aba, dataInicio, dataFim);
     res.json(formatarResultado(totais));
-  } catch (e) {
-    console.error('Erro /taxas-periodo:', e.message);
-    res.status(500).json({ erro: e.message });
-  }
+  } catch (e) { res.status(500).json({ erro: e.message }); }
 });
 
-// ─── STATUS DO TIME (ADMIN) ───────────────────────────────────
+// Status de preenchimento do time em uma data (admin)
 app.get('/status-time', async (req, res) => {
   if (!checkAdmin(req, res)) return;
   try {
-    const { data } = req.query;
-    if (!data) return res.status(400).json({ erro: 'Data é obrigatória (DD/MM/YYYY)' });
+    const { data, team } = req.query;
+    if (!data || !team) return res.status(400).json({ erro: 'data e team são obrigatórios' });
 
-    const [d, m, a] = data.split('/');
-    const dataConsulta = new Date(parseInt(a), parseInt(m)-1, parseInt(d));
-    dataConsulta.setHours(0,0,0,0);
+    const sup = getTeam(team);
+    if (!sup) return res.status(404).json({ erro: 'Time não encontrado' });
+
+    const [d, m, a]    = data.split('/');
+    const dataConsulta = new Date(parseInt(a), parseInt(m) - 1, parseInt(d));
+    dataConsulta.setHours(0, 0, 0, 0);
     if (isNaN(dataConsulta)) return res.status(400).json({ erro: 'Data inválida' });
 
-    const vendedores = loadVendedores();
-    const sheets = await getSheetsClient();
-
-    const resultados = await Promise.all(vendedores.map(async (v) => {
-      try {
-        const result = await sheets.spreadsheets.values.get({
-          spreadsheetId: SPREADSHEET_ID,
-          range: `'${v.aba}'!B:F`,
-        });
-        const rows = result.data.values || [];
-        let encontrou = false, horas = '—', atend = '—', entrv = '—', head = '—';
-        rows.forEach((row, i) => {
-          const dt = datePorLinha(i + 1);
-          if (!dt) return;
-          dt.setHours(0,0,0,0);
-          if (dt.getTime() !== dataConsulta.getTime()) return;
-          encontrou = true;
-          horas = row[1] || '0h';
-          atend = row[2] || '0';
-          entrv = row[3] || '0';
-          head  = row[4] || '0';
-        });
-        const preencheu = encontrou && (horas !== '0h' || atend !== '0' || entrv !== '0');
-        return { nome: v.nome, codigo: v.codigo, preencheu, horas, atend, entrv, head };
-      } catch(e) {
-        return { nome: v.nome, codigo: v.codigo, preencheu: false, erro: e.message };
-      }
-    }));
-
+    const sheets     = await getSheetsClient();
+    const resultados = await Promise.all(
+      (sup.vendors || []).map(async v => {
+        try {
+          const result = await sheets.spreadsheets.values.get({
+            spreadsheetId: sup.crmSheetId,
+            range: `'${v.crmTab}'!B:F`,
+          });
+          const rows = result.data.values || [];
+          let encontrou = false, horas = '—', atend = '—', entrv = '—', head = '—';
+          rows.forEach((row, i) => {
+            const dt = datePorLinha(i + 1);
+            if (!dt) return;
+            dt.setHours(0, 0, 0, 0);
+            if (dt.getTime() !== dataConsulta.getTime()) return;
+            encontrou = true;
+            horas = row[1] || '0h';
+            atend = row[2] || '0';
+            entrv = row[3] || '0';
+            head  = row[4] || '0';
+          });
+          const preencheu = encontrou && (horas !== '0h' || atend !== '0' || entrv !== '0');
+          return { nome: v.name, codigo: v.code, preencheu, horas, atend, entrv, head };
+        } catch (e) {
+          return { nome: v.name, codigo: v.code, preencheu: false, erro: e.message };
+        }
+      })
+    );
     res.json({ data, resultados });
-  } catch (e) {
-    console.error('Erro /status-time:', e.message);
-    res.status(500).json({ erro: e.message });
-  }
+  } catch (e) { res.status(500).json({ erro: e.message }); }
 });
 
-// ─── VENDAS DO TIME (ADMIN) ───────────────────────────────────
+// Vendas do time em uma data (admin)
 app.get('/vendas-time', async (req, res) => {
   if (!checkAdmin(req, res)) return;
   try {
-    const { data } = req.query;
-    if (!data) return res.status(400).json({ erro: 'Data é obrigatória (DD/MM/YYYY)' });
+    const { data, team } = req.query;
+    if (!data || !team) return res.status(400).json({ erro: 'data e team são obrigatórios' });
 
-    const vendedores = loadVendedores();
-    const sheets = await getSheetsClient();
+    const sup = getTeam(team);
+    if (!sup) return res.status(404).json({ erro: 'Time não encontrado' });
 
-    const resultados = await Promise.all(vendedores.map(async (v) => {
-      try {
-        // Tabela de vendas: colunas W até AE
-        // W=Data, X=Cliente, Y=Email, Z=Link, AA=Evento, AB=Categoria, AC=Headcounts, AD=Status, AE=OBS
-        const result = await sheets.spreadsheets.values.get({
-          spreadsheetId: SPREADSHEET_ID,
-          range: `'${v.aba}'!W:AE`,
-        });
-        const rows = result.data.values || [];
-        const vendas = [];
-        rows.forEach((row, i) => {
-          if (i === 0) return; // pula cabeçalho
-          const dataVenda = (row[0] || '').toString().trim();
-          if (!dataVenda || dataVenda === data) {
-            // Inclui linhas sem data (caso raro) ou que batem com a data
-            if (!dataVenda && !row[1]) return; // linha vazia
-            if (dataVenda !== data) return;
+    const sheets     = await getSheetsClient();
+    const resultados = await Promise.all(
+      (sup.vendors || []).map(async v => {
+        try {
+          const result = await sheets.spreadsheets.values.get({
+            spreadsheetId: sup.crmSheetId,
+            range: `'${v.crmTab}'!W:AE`,
+          });
+          const rows  = result.data.values || [];
+          const vendas = [];
+          rows.forEach((row, i) => {
+            if (i === 0) return;
+            if ((row[0] || '').toString().trim() !== data) return;
             vendas.push({
-              data:      row[0] || '',
-              cliente:   row[1] || '',
-              email:     row[2] || '',
-              link:      row[3] || '',
-              evento:    row[4] || '',
-              categoria: row[5] || '',
-              headcounts:row[6] || '',
-              status:    row[7] || '',
-              obs:       row[8] || '',
+              data:       row[0] || '', cliente:    row[1] || '',
+              email:      row[2] || '', link:       row[3] || '',
+              evento:     row[4] || '', categoria:  row[5] || '',
+              headcounts: row[6] || '', status:     row[7] || '',
+              obs:        row[8] || '',
             });
-          }
-        });
-        return { nome: v.nome, codigo: v.codigo, totalVendas: vendas.length, vendas };
-      } catch(e) {
-        return { nome: v.nome, codigo: v.codigo, totalVendas: 0, vendas: [], erro: e.message };
-      }
-    }));
-
+          });
+          return { nome: v.name, codigo: v.code, totalVendas: vendas.length, vendas };
+        } catch (e) {
+          return { nome: v.name, codigo: v.code, totalVendas: 0, vendas: [], erro: e.message };
+        }
+      })
+    );
     const totalGeral = resultados.reduce((acc, v) => acc + v.totalVendas, 0);
     res.json({ data, totalGeral, resultados });
-  } catch (e) {
-    console.error('Erro /vendas-time:', e.message);
-    res.status(500).json({ erro: e.message });
-  }
+  } catch (e) { res.status(500).json({ erro: e.message }); }
 });
 
-
-// Métricas
+// Salvar métricas diárias
 app.post('/salvar-metricas', async (req, res) => {
   try {
-    const { aba, data, horasFaladas, atenderam, entrevistaCompleta, headcounts, crossSell, comentarios } = req.body;
-    if (!aba || !data) return res.status(400).json({ erro: 'Aba e data são obrigatórios' });
+    const { team, aba, data, horasFaladas, atenderam, entrevistaCompleta, headcounts, crossSell, comentarios } = req.body;
+    if (!team || !aba || !data) return res.status(400).json({ erro: 'team, aba e data são obrigatórios' });
+
+    const sup = getTeam(team);
+    if (!sup) return res.status(404).json({ erro: 'Time não encontrado' });
+
     const sheets = await getSheetsClient();
-    const linha = await encontrarLinhaData(sheets, aba, data);
+    const linha  = await encontrarLinhaData(sheets, sup.crmSheetId, aba, data);
     if (!linha) return res.status(404).json({ erro: `Data ${data} não encontrada na aba ${aba}` });
+
     await sheets.spreadsheets.values.update({
-      spreadsheetId: SPREADSHEET_ID,
+      spreadsheetId: sup.crmSheetId,
       range: `'${aba}'!C${linha}:H${linha}`,
       valueInputOption: 'USER_ENTERED',
       requestBody: { values: [[horasFaladas, atenderam, entrevistaCompleta, headcounts, crossSell, comentarios]] },
@@ -328,15 +489,19 @@ app.post('/salvar-metricas', async (req, res) => {
   } catch (e) { res.status(500).json({ erro: e.message }); }
 });
 
-// Vendas
+// Salvar venda
 app.post('/salvar-venda', async (req, res) => {
   try {
-    const { aba, data, cliente, email, linkClint, evento, categoria, headcounts, obs } = req.body;
-    if (!aba || !data) return res.status(400).json({ erro: 'Aba e data são obrigatórios' });
+    const { team, aba, data, cliente, email, linkClint, evento, categoria, headcounts, obs } = req.body;
+    if (!team || !aba || !data) return res.status(400).json({ erro: 'team, aba e data são obrigatórios' });
+
+    const sup = getTeam(team);
+    if (!sup) return res.status(404).json({ erro: 'Time não encontrado' });
+
     const sheets = await getSheetsClient();
-    const linha = await encontrarLinhaVenda(sheets, aba);
+    const linha  = await encontrarLinhaVenda(sheets, sup.crmSheetId, aba);
     await sheets.spreadsheets.values.update({
-      spreadsheetId: SPREADSHEET_ID,
+      spreadsheetId: sup.crmSheetId,
       range: `'${aba}'!W${linha}:AE${linha}`,
       valueInputOption: 'USER_ENTERED',
       requestBody: { values: [[data, cliente, email, linkClint, evento, categoria, headcounts, '', obs]] },
@@ -345,7 +510,177 @@ app.post('/salvar-venda', async (req, res) => {
   } catch (e) { res.status(500).json({ erro: e.message }); }
 });
 
-app.get('/', (req, res) => res.json({ status: 'ok', servico: 'Registro Diário API' }));
+// ============================================================
+// ROTAS ADMIN
+// ============================================================
 
+// Verificar senha admin
+app.post('/admin/verificar', (req, res) => {
+  const pwd = req.headers['x-admin-password'] || req.body?.password;
+  res.json({ ok: pwd === ADMIN_PASSWORD });
+});
+
+// Status GitHub
+app.get('/admin/github-status', (req, res) => {
+  if (!checkAdmin(req, res)) return;
+  res.json({ configured: !!GITHUB_TOKEN, repo: GITHUB_REPO, teams: SUPERVISORS.length });
+});
+
+// Instruções de setup para popup no frontend ao criar novo time
+app.get('/admin/setup-info', (req, res) => {
+  if (!checkAdmin(req, res)) return;
+  res.json({
+    serviceAccountEmail: SERVICE_ACCOUNT_EMAIL,
+    steps: [
+      `Abra a planilha Google Sheets do time`,
+      `Clique em "Compartilhar" e adicione como Editor: ${SERVICE_ACCOUNT_EMAIL}`,
+      `Peça ao DevOps para remover a proteção das células (Dados → Planilhas e intervalos protegidos → remover tudo)`,
+      `Cole o ID ou URL da planilha ao cadastrar o time aqui`,
+    ],
+  });
+});
+
+// ── SUPERVISORES / TIMES ─────────────────────────────────────
+
+app.post('/admin/supervisor', async (req, res) => {
+  if (!checkAdmin(req, res)) return;
+  const { id, name, teamName, crmSheetId, crmUrl, color, supervisorCode } = req.body;
+  if (!id || !name || !teamName) return res.status(400).json({ erro: 'id, name e teamName são obrigatórios' });
+
+  const resolvedCRM = crmUrl
+    ? (crmUrl.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/)?.[1] || crmUrl)
+    : (crmSheetId || '');
+
+  const idx   = SUPERVISORS.findIndex(s => s.id === id);
+  const entry = {
+    id, name, teamName,
+    color:          color || '#4c9fff',
+    crmSheetId:     resolvedCRM,
+    supervisorCode: supervisorCode || '',
+    vendors: idx >= 0 ? SUPERVISORS[idx].vendors : [],
+    groups:  idx >= 0 ? SUPERVISORS[idx].groups  : [],
+  };
+  idx >= 0 ? (SUPERVISORS[idx] = entry) : SUPERVISORS.push(entry);
+  res.json({ ok: true, savedToGitHub: await ghSave('supervisors.json', SUPERVISORS) });
+});
+
+app.delete('/admin/supervisor/:id', async (req, res) => {
+  if (!checkAdmin(req, res)) return;
+  SUPERVISORS = SUPERVISORS.filter(s => s.id !== req.params.id);
+  res.json({ ok: true, savedToGitHub: await ghSave('supervisors.json', SUPERVISORS) });
+});
+
+// ── VENDEDORES ───────────────────────────────────────────────
+
+app.post('/admin/supervisor/:teamId/vendor', async (req, res) => {
+  if (!checkAdmin(req, res)) return;
+  const sup = SUPERVISORS.find(s => s.id === req.params.teamId);
+  if (!sup) return res.status(404).json({ erro: 'Time não encontrado' });
+
+  const { code, name, crmTab, fixedCost, startDate, exitDate, isSupervisor, meta } = req.body;
+  if (!code || !name) return res.status(400).json({ erro: 'code e name são obrigatórios' });
+
+  const idx   = sup.vendors.findIndex(v => v.code === code);
+  const entry = {
+    code, name,
+    crmTab:       crmTab || `${name} - ${code}`,
+    fixedCost:    fixedCost  ?? 1500,
+    isSupervisor: isSupervisor || false,
+    startDate:    startDate   || null,
+    exitDate:     exitDate    || null,
+    meta: meta || { day: 0, week: 2, month: 8, value: 2167, headcounts: 20 },
+  };
+  idx >= 0 ? (sup.vendors[idx] = entry) : sup.vendors.push(entry);
+  res.json({ ok: true, savedToGitHub: await ghSave('supervisors.json', SUPERVISORS) });
+});
+
+app.delete('/admin/supervisor/:teamId/vendor/:code', async (req, res) => {
+  if (!checkAdmin(req, res)) return;
+  const sup = SUPERVISORS.find(s => s.id === req.params.teamId);
+  if (!sup) return res.status(404).json({ erro: 'Time não encontrado' });
+
+  const { code } = req.params;
+  sup.vendors = sup.vendors.filter(v => v.code !== code);
+  // Remove do grupo automaticamente
+  (sup.groups || []).forEach(g => {
+    g.vendorCodes = (g.vendorCodes || []).filter(c => c !== code);
+  });
+  res.json({ ok: true, savedToGitHub: await ghSave('supervisors.json', SUPERVISORS) });
+});
+
+// ── GRUPOS ───────────────────────────────────────────────────
+
+app.post('/admin/supervisor/:teamId/grupo', async (req, res) => {
+  if (!checkAdmin(req, res)) return;
+  const sup = SUPERVISORS.find(s => s.id === req.params.teamId);
+  if (!sup) return res.status(404).json({ erro: 'Time não encontrado' });
+  if (!sup.groups) sup.groups = [];
+
+  const { id, name, color, hcGoal, vendorCodes, immersionIds } = req.body;
+  if (!name) return res.status(400).json({ erro: 'name é obrigatório' });
+
+  const groupId     = id || Date.now().toString();
+  const idx         = sup.groups.findIndex(g => g.id === groupId);
+  const members     = (sup.vendors || []).filter(v => (vendorCodes || []).includes(v.code));
+  const hcPerVendor = members.length > 0 ? Math.ceil((hcGoal || 0) / members.length) : 0;
+
+  const entry = {
+    id:           groupId,
+    name,
+    color:        color || '#4c9fff',
+    hcGoal:       hcGoal || 0,
+    hcPerVendor,
+    vendorCodes:  vendorCodes  || [],
+    immersionIds: immersionIds || [],
+  };
+  idx >= 0 ? (sup.groups[idx] = entry) : sup.groups.push(entry);
+  res.json({ ok: true, group: entry, savedToGitHub: await ghSave('supervisors.json', SUPERVISORS) });
+});
+
+app.delete('/admin/supervisor/:teamId/grupo/:groupId', async (req, res) => {
+  if (!checkAdmin(req, res)) return;
+  const sup = SUPERVISORS.find(s => s.id === req.params.teamId);
+  if (!sup) return res.status(404).json({ erro: 'Time não encontrado' });
+  sup.groups = (sup.groups || []).filter(g => g.id !== req.params.groupId);
+  res.json({ ok: true, savedToGitHub: await ghSave('supervisors.json', SUPERVISORS) });
+});
+
+// ── IMERSÕES ─────────────────────────────────────────────────
+
+app.post('/admin/immersion', async (req, res) => {
+  if (!checkAdmin(req, res)) return;
+  const { id, name, startDate, location } = req.body;
+  if (!name || !startDate) return res.status(400).json({ erro: 'name e startDate são obrigatórios' });
+
+  if (!GLOBAL_CONFIG.immersions) GLOBAL_CONFIG.immersions = [];
+  const immId = id || Date.now().toString();
+  const idx   = GLOBAL_CONFIG.immersions.findIndex(i => i.id === immId);
+  const entry = { id: immId, name, startDate, location: location || '' };
+  idx >= 0 ? (GLOBAL_CONFIG.immersions[idx] = entry) : GLOBAL_CONFIG.immersions.push(entry);
+  GLOBAL_CONFIG.updatedAt = new Date().toISOString();
+  res.json({ ok: true, savedToGitHub: await ghSave('config.json', GLOBAL_CONFIG) });
+});
+
+// Ao deletar imersão, remove referência dos grupos automaticamente
+app.delete('/admin/immersion/:id', async (req, res) => {
+  if (!checkAdmin(req, res)) return;
+  const { id } = req.params;
+  GLOBAL_CONFIG.immersions = (GLOBAL_CONFIG.immersions || []).filter(i => i.id !== id);
+  GLOBAL_CONFIG.updatedAt  = new Date().toISOString();
+  SUPERVISORS.forEach(sup => {
+    (sup.groups || []).forEach(g => {
+      g.immersionIds = (g.immersionIds || []).filter(iid => iid !== id);
+    });
+  });
+  await ghSave('config.json', GLOBAL_CONFIG);
+  res.json({ ok: true, savedToGitHub: await ghSave('supervisors.json', SUPERVISORS) });
+});
+
+// ============================================================
+// START
+// ============================================================
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));
+app.listen(PORT, async () => {
+  console.log(`🚀 Registro Diário API v2 na porta ${PORT}`);
+  await loadFromGitHub();
+});
