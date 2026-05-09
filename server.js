@@ -245,6 +245,16 @@ function checkAdmin(req, res) {
   return true;
 }
 
+// Team admin: aceita senha global OU código do supervisor do time
+function checkTeamAdmin(req, res, teamId) {
+  const pwd = req.headers['x-admin-password'] || req.body?.password;
+  if (pwd === ADMIN_PASSWORD) return true;
+  const sup = getTeam(teamId);
+  if (sup && sup.supervisorCode && pwd === sup.supervisorCode) return true;
+  res.status(401).json({ erro: 'Senha incorreta' });
+  return false;
+}
+
 function getTeam(teamId) {
   return SUPERVISORS.find(s => s.id === teamId) || null;
 }
@@ -379,7 +389,8 @@ app.get('/taxas-periodo', async (req, res) => {
 
 // Status de preenchimento do time em uma data (admin)
 app.get('/status-time', async (req, res) => {
-  if (!checkAdmin(req, res)) return;
+  const { team } = req.query;
+  if (!checkTeamAdmin(req, res, team)) return;
   try {
     const { data, team } = req.query;
     if (!data || !team) return res.status(400).json({ erro: 'data e team são obrigatórios' });
@@ -426,7 +437,8 @@ app.get('/status-time', async (req, res) => {
 
 // Vendas do time em uma data (admin)
 app.get('/vendas-time', async (req, res) => {
-  if (!checkAdmin(req, res)) return;
+  const { team } = req.query;
+  if (!checkTeamAdmin(req, res, team)) return;
   try {
     const { data, team } = req.query;
     if (!data || !team) return res.status(400).json({ erro: 'data e team são obrigatórios' });
@@ -514,10 +526,20 @@ app.post('/salvar-venda', async (req, res) => {
 // ROTAS ADMIN
 // ============================================================
 
-// Verificar senha admin
+// Verificar senha admin global
 app.post('/admin/verificar', (req, res) => {
   const pwd = req.headers['x-admin-password'] || req.body?.password;
   res.json({ ok: pwd === ADMIN_PASSWORD });
+});
+
+// Verificar senha do time (supervisorCode) ou admin global
+app.post('/admin/team-verify', (req, res) => {
+  const { teamId } = req.body;
+  const pwd = req.headers['x-admin-password'] || req.body?.password;
+  if (pwd === ADMIN_PASSWORD) return res.json({ ok: true, isGlobal: true });
+  const sup = getTeam(teamId);
+  if (sup && sup.supervisorCode && pwd === sup.supervisorCode) return res.json({ ok: true, isGlobal: false, teamId });
+  res.status(401).json({ ok: false, erro: 'Senha incorreta' });
 });
 
 // Status GitHub
@@ -573,7 +595,7 @@ app.delete('/admin/supervisor/:id', async (req, res) => {
 // ── VENDEDORES ───────────────────────────────────────────────
 
 app.post('/admin/supervisor/:teamId/vendor', async (req, res) => {
-  if (!checkAdmin(req, res)) return;
+  if (!checkTeamAdmin(req, res, req.params.teamId)) return;
   const sup = SUPERVISORS.find(s => s.id === req.params.teamId);
   if (!sup) return res.status(404).json({ erro: 'Time não encontrado' });
 
@@ -595,7 +617,7 @@ app.post('/admin/supervisor/:teamId/vendor', async (req, res) => {
 });
 
 app.delete('/admin/supervisor/:teamId/vendor/:code', async (req, res) => {
-  if (!checkAdmin(req, res)) return;
+  if (!checkTeamAdmin(req, res, req.params.teamId)) return;
   const sup = SUPERVISORS.find(s => s.id === req.params.teamId);
   if (!sup) return res.status(404).json({ erro: 'Time não encontrado' });
 
@@ -611,7 +633,7 @@ app.delete('/admin/supervisor/:teamId/vendor/:code', async (req, res) => {
 // ── GRUPOS ───────────────────────────────────────────────────
 
 app.post('/admin/supervisor/:teamId/grupo', async (req, res) => {
-  if (!checkAdmin(req, res)) return;
+  if (!checkTeamAdmin(req, res, req.params.teamId)) return;
   const sup = SUPERVISORS.find(s => s.id === req.params.teamId);
   if (!sup) return res.status(404).json({ erro: 'Time não encontrado' });
   if (!sup.groups) sup.groups = [];
@@ -638,7 +660,7 @@ app.post('/admin/supervisor/:teamId/grupo', async (req, res) => {
 });
 
 app.delete('/admin/supervisor/:teamId/grupo/:groupId', async (req, res) => {
-  if (!checkAdmin(req, res)) return;
+  if (!checkTeamAdmin(req, res, req.params.teamId)) return;
   const sup = SUPERVISORS.find(s => s.id === req.params.teamId);
   if (!sup) return res.status(404).json({ erro: 'Time não encontrado' });
   sup.groups = (sup.groups || []).filter(g => g.id !== req.params.groupId);
