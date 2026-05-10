@@ -183,5 +183,15 @@
         "immersionIds": []
       }
     ]
+  },
+  {
+    "id": "guerreiros",
+    "name": "Thiago Xavier",
+    "teamName": "37 Guerreiros",
+    "color": "#ffc800",
+    "crmSheetId": "1gfgztOLwQO1o4HLMFIWEFjwjaQyLOq6EUsjo-08jgVU",
+    "supervisorCode": "V089",
+    "vendors": [],
+    "groups": []
   }
 ]
