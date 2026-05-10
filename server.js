@@ -507,7 +507,8 @@ app.post('/salvar-metricas-rec', async (req, res) => {
 
     const sup = getTeam(team);
     if (!sup) return res.status(404).json({ erro: 'Time não encontrado' });
-    if (!sup.vendors.find(v => v.crmTab === aba)?.hasRec)
+    const vendor = sup.vendors.find(v => v.crmTab === aba);
+    if (!vendor?.hasRec)
       return res.status(403).json({ erro: 'Vendedor não habilitado para Recuperação' });
 
     const sheets = await getSheetsClient();
@@ -624,7 +625,7 @@ app.post('/admin/supervisor/:teamId/vendor', async (req, res) => {
   const sup = SUPERVISORS.find(s => s.id === req.params.teamId);
   if (!sup) return res.status(404).json({ erro: 'Time não encontrado' });
 
-  const { code, name, crmTab, fixedCost, startDate, exitDate, isSupervisor, meta } = req.body;
+  const { code, name, crmTab, fixedCost, startDate, exitDate, isSupervisor, hasRec, meta } = req.body;
   if (!code || !name) return res.status(400).json({ erro: 'code e name são obrigatórios' });
 
   const idx   = sup.vendors.findIndex(v => v.code === code);
@@ -633,6 +634,7 @@ app.post('/admin/supervisor/:teamId/vendor', async (req, res) => {
     crmTab:       crmTab || `${name} - ${code}`,
     fixedCost:    fixedCost  ?? 1500,
     isSupervisor: isSupervisor || false,
+    hasRec:       hasRec || false,
     startDate:    startDate   || null,
     exitDate:     exitDate    || null,
     meta: meta || { day: 0, week: 2, month: 8, value: 2167, headcounts: 20 },
