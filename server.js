@@ -665,6 +665,18 @@ app.delete('/admin/supervisor/:teamId/grupo/:groupId', async (req, res) => {
   res.json({ ok: true, savedToGitHub: await ghSave('supervisors.json', SUPERVISORS) });
 });
 
+// Atualizar período da meta global
+app.post('/admin/config', async (req, res) => {
+  if (!checkAdmin(req, res)) return;
+  const { periodoInicio, periodoFim } = req.body;
+  if (!periodoInicio || !periodoFim) return res.status(400).json({ erro: 'periodoInicio e periodoFim são obrigatórios' });
+  if (!GLOBAL_CONFIG.meta) GLOBAL_CONFIG.meta = {};
+  GLOBAL_CONFIG.meta.periodoInicio = periodoInicio;
+  GLOBAL_CONFIG.meta.periodoFim    = periodoFim;
+  GLOBAL_CONFIG.updatedAt = new Date().toISOString();
+  res.json({ ok: true, savedToGitHub: await ghSave('config.json', GLOBAL_CONFIG) });
+});
+
 // ── IMERSÕES ─────────────────────────────────────────────────
 
 app.post('/admin/immersion', async (req, res) => {
