@@ -167,6 +167,22 @@
         "immersionIds": [
           "1778290636839"
         ]
+      },
+      {
+        "id": "1778376221141",
+        "name": "Grupo A",
+        "color": "#4c9fff",
+        "hcGoal": 28,
+        "hcPerVendor": 10,
+        "vendorCodes": [
+          "V881",
+          "V888",
+          "V749"
+        ],
+        "immersionIds": [
+          "1778288149173",
+          "1778290658696"
+        ]
       }
     ]
   }
