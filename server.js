@@ -665,7 +665,7 @@ app.post('/admin/supervisor/:teamId/grupo', async (req, res) => {
   if (!sup) return res.status(404).json({ erro: 'Time não encontrado' });
   if (!sup.groups) sup.groups = [];
 
-  const { id, name, color, hcGoal, vendorCodes, immersionIds } = req.body;
+  const { id, name, color, hcGoal, vendorCodes, immersionIds, periodoInicio, periodoFim } = req.body;
   if (!name) return res.status(400).json({ erro: 'name é obrigatório' });
 
   const groupId     = id || Date.now().toString();
@@ -681,6 +681,8 @@ app.post('/admin/supervisor/:teamId/grupo', async (req, res) => {
     hcPerVendor,
     vendorCodes:  vendorCodes  || [],
     immersionIds: immersionIds || [],
+    periodoInicio: periodoInicio || null,
+    periodoFim:    periodoFim    || null,
   };
   idx >= 0 ? (sup.groups[idx] = entry) : sup.groups.push(entry);
   res.json({ ok: true, group: entry, savedToGitHub: await ghSave('supervisors.json', SUPERVISORS) });
