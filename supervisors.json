@@ -15,7 +15,13 @@
         "isSupervisor": false,
         "startDate": "2025-12-22",
         "exitDate": null,
-        "meta": { "day": 0, "week": 2, "month": 8, "value": 2167, "headcounts": 20 }
+        "meta": {
+          "day": 0,
+          "week": 2,
+          "month": 8,
+          "value": 2167,
+          "headcounts": 20
+        }
       },
       {
         "code": "V865",
@@ -25,7 +31,13 @@
         "isSupervisor": false,
         "startDate": "2026-01-27",
         "exitDate": null,
-        "meta": { "day": 0, "week": 2, "month": 8, "value": 2167, "headcounts": 20 }
+        "meta": {
+          "day": 0,
+          "week": 2,
+          "month": 8,
+          "value": 2167,
+          "headcounts": 20
+        }
       },
       {
         "code": "V866",
@@ -35,7 +47,13 @@
         "isSupervisor": false,
         "startDate": "2026-01-27",
         "exitDate": "2026-03-31",
-        "meta": { "day": 0, "week": 2, "month": 8, "value": 2167, "headcounts": 20 }
+        "meta": {
+          "day": 0,
+          "week": 2,
+          "month": 8,
+          "value": 2167,
+          "headcounts": 20
+        }
       },
       {
         "code": "V881",
@@ -45,7 +63,13 @@
         "isSupervisor": false,
         "startDate": "2026-02-09",
         "exitDate": null,
-        "meta": { "day": 0, "week": 2, "month": 8, "value": 2561, "headcounts": 20 }
+        "meta": {
+          "day": 0,
+          "week": 2,
+          "month": 8,
+          "value": 2561,
+          "headcounts": 20
+        }
       },
       {
         "code": "V888",
@@ -55,7 +79,13 @@
         "isSupervisor": false,
         "startDate": "2026-02-12",
         "exitDate": null,
-        "meta": { "day": 0, "week": 2, "month": 8, "value": 2167, "headcounts": 20 }
+        "meta": {
+          "day": 0,
+          "week": 2,
+          "month": 8,
+          "value": 2167,
+          "headcounts": 20
+        }
       },
       {
         "code": "V749",
@@ -65,7 +95,13 @@
         "isSupervisor": false,
         "startDate": "2025-10-22",
         "exitDate": null,
-        "meta": { "day": 0, "week": 2, "month": 8, "value": 2561, "headcounts": 20 }
+        "meta": {
+          "day": 0,
+          "week": 2,
+          "month": 8,
+          "value": 2561,
+          "headcounts": 20
+        }
       },
       {
         "code": "V459",
@@ -75,7 +111,13 @@
         "isSupervisor": false,
         "startDate": "2025-08-19",
         "exitDate": "2026-03-06",
-        "meta": { "day": 0, "week": 2, "month": 8, "value": 2167, "headcounts": 20 }
+        "meta": {
+          "day": 0,
+          "week": 2,
+          "month": 8,
+          "value": 2167,
+          "headcounts": 20
+        }
       },
       {
         "code": "V1054",
@@ -85,7 +127,13 @@
         "isSupervisor": false,
         "startDate": "2026-05-06",
         "exitDate": null,
-        "meta": { "day": 0, "week": 2, "month": 11, "value": 2164, "headcounts": 22 }
+        "meta": {
+          "day": 0,
+          "week": 2,
+          "month": 11,
+          "value": 2164,
+          "headcounts": 22
+        }
       },
       {
         "code": "V737",
@@ -95,9 +143,31 @@
         "isSupervisor": true,
         "startDate": "2025-10-22",
         "exitDate": null,
-        "meta": { "day": 0, "week": 2, "month": 8, "value": 5000, "headcounts": 20 }
+        "meta": {
+          "day": 0,
+          "week": 2,
+          "month": 8,
+          "value": 5000,
+          "headcounts": 20
+        }
       }
     ],
-    "groups": []
+    "groups": [
+      {
+        "id": "1778376183683",
+        "name": "Grupo B",
+        "color": "#2413aa",
+        "hcGoal": 25,
+        "hcPerVendor": 9,
+        "vendorCodes": [
+          "V823",
+          "V865",
+          "V1054"
+        ],
+        "immersionIds": [
+          "1778290636839"
+        ]
+      }
+    ]
   }
 ]
