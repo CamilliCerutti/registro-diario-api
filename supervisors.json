@@ -198,7 +198,25 @@
     "color": "#ffc800",
     "crmSheetId": "1gfgztOLwQO1o4HLMFIWEFjwjaQyLOq6EUsjo-08jgVU",
     "supervisorCode": "V089",
-    "vendors": [],
+    "vendors": [
+      {
+        "code": "V089",
+        "name": "Thiago Xavier",
+        "crmTab": "Thiago Xavier - V089",
+        "fixedCost": 1500,
+        "isSupervisor": true,
+        "hasRec": true,
+        "startDate": "2025-02-17",
+        "exitDate": null,
+        "meta": {
+          "day": 0,
+          "week": 2,
+          "month": 8,
+          "value": 2167,
+          "headcounts": 20
+        }
+      }
+    ],
     "groups": []
   }
 ]
