@@ -172,7 +172,7 @@
       {
         "id": "1778376221141",
         "name": "Grupo A",
-        "color": "#90138c",
+        "color": "#4c9fff",
         "hcGoal": 28,
         "hcPerVendor": 10,
         "vendorCodes": [
@@ -180,10 +180,7 @@
           "V888",
           "V749"
         ],
-        "immersionIds": [
-          "1778419336259",
-          "1778419445277"
-        ]
+        "immersionIds": []
       }
     ]
   }
