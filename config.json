@@ -1,12 +1,6 @@
 {
   "immersions": [
     {
-      "id": "1778288149173",
-      "name": "IMLS CAMPO GRANDE",
-      "startDate": "2026-05-15",
-      "location": "Campo Grande, MS"
-    },
-    {
       "id": "1778290636839",
       "name": "IMLS SALVADOR",
       "startDate": "2026-05-22",
@@ -19,5 +13,5 @@
       "location": "Maceió, AL"
     }
   ],
-  "updatedAt": "2026-05-09T13:07:01.919Z"
+  "updatedAt": "2026-05-10T13:22:00.244Z"
 }
