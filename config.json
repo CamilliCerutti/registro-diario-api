@@ -7,17 +7,11 @@
       "location": "Campo Grande, MS"
     },
     {
-      "id": "1778419367036",
-      "name": "IMLS - MACEIÓ",
-      "startDate": "2026-05-22",
-      "location": "Maceio, AL"
-    },
-    {
       "id": "1778419422408",
       "name": "IMLS - SALVADOR",
       "startDate": "2026-05-22",
       "location": "Salvador, BA"
     }
   ],
-  "updatedAt": "2026-05-10T13:23:42.408Z"
+  "updatedAt": "2026-05-10T13:23:47.060Z"
 }
