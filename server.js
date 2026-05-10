@@ -499,6 +499,33 @@ app.post('/salvar-metricas', async (req, res) => {
   } catch (e) { res.status(500).json({ erro: e.message }); }
 });
 
+// Salvar métricas de Recuperação (colunas M:S da mesma aba)
+app.post('/salvar-metricas-rec', async (req, res) => {
+  try {
+    const { team, aba, data, pagRec, abandono, faleEsp, captacao, invalidos, headcountsRec } = req.body;
+    if (!team || !aba || !data) return res.status(400).json({ erro: 'team, aba e data são obrigatórios' });
+
+    const sup = getTeam(team);
+    if (!sup) return res.status(404).json({ erro: 'Time não encontrado' });
+    if (!sup.vendors.find(v => v.crmTab === aba)?.hasRec)
+      return res.status(403).json({ erro: 'Vendedor não habilitado para Recuperação' });
+
+    const sheets = await getSheetsClient();
+    const linha  = await encontrarLinhaData(sheets, sup.crmSheetId, aba, data);
+    if (!linha) return res.status(404).json({ erro: `Data ${data} não encontrada na aba ${aba}` });
+
+    // N:S = 6 colunas de dados (M é Data, compartilhada com VA)
+    // N=Pag.Rec., O=Abandono, P=Fale c/Esp., Q=Captação, R=Inválidos, S=Headcounts
+    await sheets.spreadsheets.values.update({
+      spreadsheetId: sup.crmSheetId,
+      range: `'${aba}'!N${linha}:S${linha}`,
+      valueInputOption: 'USER_ENTERED',
+      requestBody: { values: [[pagRec||0, abandono||0, faleEsp||0, captacao||0, invalidos||0, headcountsRec||0]] },
+    });
+    res.json({ ok: true, linha });
+  } catch (e) { res.status(500).json({ erro: e.message }); }
+});
+
 // Salvar venda
 app.post('/salvar-venda', async (req, res) => {
   try {
