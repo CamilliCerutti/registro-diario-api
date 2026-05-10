@@ -404,7 +404,7 @@ app.get('/status-time', async (req, res) => {
 
     const sheets     = await getSheetsClient();
     const resultados = await Promise.all(
-      (sup.vendors || []).map(async v => {
+      (sup.vendors || []).filter(v => !v.exitDate).map(async v => {
         try {
           const result = await sheets.spreadsheets.values.get({
             spreadsheetId: sup.crmSheetId,
@@ -446,7 +446,7 @@ app.get('/vendas-time', async (req, res) => {
 
     const sheets     = await getSheetsClient();
     const resultados = await Promise.all(
-      (sup.vendors || []).map(async v => {
+      (sup.vendors || []).filter(v => !v.exitDate).map(async v => {
         try {
           const result = await sheets.spreadsheets.values.get({
             spreadsheetId: sup.crmSheetId,
