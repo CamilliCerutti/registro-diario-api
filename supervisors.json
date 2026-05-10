@@ -140,15 +140,16 @@
         "code": "V737",
         "name": "Camilli Cerutti",
         "crmTab": "Camilli Cerutti - V737",
-        "fixedCost": 3000,
+        "fixedCost": 1500,
         "isSupervisor": true,
+        "hasRec": true,
         "startDate": "2025-10-22",
         "exitDate": null,
         "meta": {
           "day": 0,
           "week": 2,
           "month": 8,
-          "value": 5000,
+          "value": 2167,
           "headcounts": 20
         }
       }
