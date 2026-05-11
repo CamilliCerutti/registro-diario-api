@@ -320,7 +320,25 @@
         }
       }
     ],
-    "groups": []
+    "groups": [
+      {
+        "id": "1778543942864",
+        "name": "Grupa A",
+        "color": "#ff4dac",
+        "hcGoal": 21,
+        "hcPerVendor": 7,
+        "vendorCodes": [
+          "V832",
+          "V431",
+          "V973"
+        ],
+        "immersionIds": [
+          "1778419336259"
+        ],
+        "periodoInicio": "2026-05-07",
+        "periodoFim": "2026-05-15"
+      }
+    ]
   },
   {
     "id": "flow",
