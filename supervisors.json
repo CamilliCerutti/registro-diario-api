@@ -227,7 +227,25 @@
     "color": "#a106f4",
     "crmSheetId": "1jMI_7eRaOK6D6w6WqdkV0hpsveduRPfFzytbccJU_Yc",
     "supervisorCode": "V103",
-    "vendors": [],
+    "vendors": [
+      {
+        "code": "V103",
+        "name": "Fernanda Friedrich",
+        "crmTab": "Fernanda Friedrich - V103",
+        "fixedCost": 1500,
+        "isSupervisor": true,
+        "hasRec": true,
+        "startDate": null,
+        "exitDate": null,
+        "meta": {
+          "day": 0,
+          "week": 2,
+          "month": 8,
+          "value": 2167,
+          "headcounts": 20
+        }
+      }
+    ],
     "groups": []
   }
 ]
