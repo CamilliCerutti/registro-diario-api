@@ -219,5 +219,15 @@
       }
     ],
     "groups": []
+  },
+  {
+    "id": "flow",
+    "name": "Fernanda Friedrich",
+    "teamName": "Flow",
+    "color": "#a106f4",
+    "crmSheetId": "1jMI_7eRaOK6D6w6WqdkV0hpsveduRPfFzytbccJU_Yc",
+    "supervisorCode": "V103",
+    "vendors": [],
+    "groups": []
   }
 ]
