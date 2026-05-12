@@ -337,6 +337,23 @@
         ],
         "periodoInicio": "2026-05-07",
         "periodoFim": "2026-05-15"
+      },
+      {
+        "id": "1778544013088",
+        "name": "Grupo B",
+        "color": "#4c9fff",
+        "hcGoal": 32,
+        "hcPerVendor": 11,
+        "vendorCodes": [
+          "V109",
+          "V869",
+          "V558"
+        ],
+        "immersionIds": [
+          "1778419422408"
+        ],
+        "periodoInicio": "2026-05-07",
+        "periodoFim": null
       }
     ]
   },
