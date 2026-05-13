@@ -77,9 +77,9 @@
         "crmTab": "Ana Carolina - V888",
         "fixedCost": 1500,
         "isSupervisor": false,
-        "hasRec": true,
+        "hasRec": false,
         "startDate": "2026-02-12",
-        "exitDate": null,
+        "exitDate": "2026-05-13",
         "meta": {
           "day": 0,
           "week": 2,
