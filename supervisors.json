@@ -186,23 +186,6 @@
           "value": 2167,
           "headcounts": 20
         }
-      },
-      {
-        "code": "V1072",
-        "name": "João Vitor",
-        "crmTab": "João Vitor - V1072",
-        "fixedCost": 1500,
-        "isSupervisor": false,
-        "hasRec": false,
-        "startDate": "2026-05-13",
-        "exitDate": null,
-        "meta": {
-          "day": 0,
-          "week": 2,
-          "month": 8,
-          "value": 2167,
-          "headcounts": 20
-        }
       }
     ],
     "groups": [
