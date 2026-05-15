@@ -186,6 +186,23 @@
           "value": 2167,
           "headcounts": 20
         }
+      },
+      {
+        "code": "V1080",
+        "name": "Stefany Vincis",
+        "crmTab": "Stefany vincis - V1080",
+        "fixedCost": 1500,
+        "isSupervisor": false,
+        "hasRec": false,
+        "startDate": "2026-05-14",
+        "exitDate": null,
+        "meta": {
+          "day": 0,
+          "week": 2,
+          "month": 8,
+          "value": 2167,
+          "headcounts": 20
+        }
       }
     ],
     "groups": [
