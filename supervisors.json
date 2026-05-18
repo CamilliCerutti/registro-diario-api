@@ -205,26 +205,7 @@
         }
       }
     ],
-    "groups": [
-      {
-        "id": "1778376221141",
-        "name": "Grupo A",
-        "color": "#4c9fff",
-        "hcGoal": 28,
-        "hcPerVendor": 10,
-        "vendorCodes": [
-          "V881",
-          "V888",
-          "V749"
-        ],
-        "immersionIds": [
-          "1778419336259",
-          "1778419445277"
-        ],
-        "periodoInicio": "2026-05-07",
-        "periodoFim": null
-      }
-    ]
+    "groups": []
   },
   {
     "id": "guerreiros",
