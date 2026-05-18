@@ -207,23 +207,6 @@
     ],
     "groups": [
       {
-        "id": "1778376183683",
-        "name": "Grupo B",
-        "color": "#2413aa",
-        "hcGoal": 25,
-        "hcPerVendor": 9,
-        "vendorCodes": [
-          "V823",
-          "V865",
-          "V1054"
-        ],
-        "immersionIds": [
-          "1778419422408"
-        ],
-        "periodoInicio": "2026-05-07",
-        "periodoFim": null
-      },
-      {
         "id": "1778376221141",
         "name": "Grupo A",
         "color": "#4c9fff",
