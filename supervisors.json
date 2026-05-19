@@ -333,6 +333,23 @@
           "value": 2167,
           "headcounts": 20
         }
+      },
+      {
+        "code": "V1073",
+        "name": "Amanda dos Santos Sena",
+        "crmTab": "Amanda Sena - V1073",
+        "fixedCost": 1500,
+        "isSupervisor": false,
+        "hasRec": false,
+        "startDate": "2026-05-12",
+        "exitDate": null,
+        "meta": {
+          "day": 0,
+          "week": 2,
+          "month": 8,
+          "value": 2167,
+          "headcounts": 20
+        }
       }
     ],
     "groups": [
