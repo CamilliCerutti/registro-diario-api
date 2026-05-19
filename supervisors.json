@@ -350,6 +350,23 @@
           "value": 2167,
           "headcounts": 20
         }
+      },
+      {
+        "code": "V1058",
+        "name": "Nicollas Maranha Silva",
+        "crmTab": "Nicollas Maranha - V1058",
+        "fixedCost": 1500,
+        "isSupervisor": false,
+        "hasRec": false,
+        "startDate": "2026-05-07",
+        "exitDate": null,
+        "meta": {
+          "day": 0,
+          "week": 2,
+          "month": 8,
+          "value": 2167,
+          "headcounts": 20
+        }
       }
     ],
     "groups": [
