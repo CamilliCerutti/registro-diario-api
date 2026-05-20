@@ -29,6 +29,7 @@
         "crmTab": "Solange Rodrigues - V865",
         "fixedCost": 1500,
         "isSupervisor": false,
+        "hasRec": true,
         "startDate": "2026-01-27",
         "exitDate": null,
         "meta": {
