@@ -92,15 +92,16 @@
         "code": "V749",
         "name": "Laila Cesário",
         "crmTab": "Laila Cesário - V749",
-        "fixedCost": 1800,
+        "fixedCost": 1500,
         "isSupervisor": false,
+        "hasRec": false,
         "startDate": "2025-10-22",
-        "exitDate": null,
+        "exitDate": "2026-05-20",
         "meta": {
           "day": 0,
           "week": 2,
           "month": 8,
-          "value": 2561,
+          "value": 2167,
           "headcounts": 20
         }
       },
