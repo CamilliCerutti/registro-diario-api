@@ -24,23 +24,6 @@
         }
       },
       {
-        "code": "V865",
-        "name": "Solange Rodrigues",
-        "crmTab": "Solange Rodrigues - V865",
-        "fixedCost": 1500,
-        "isSupervisor": false,
-        "hasRec": true,
-        "startDate": "2026-01-27",
-        "exitDate": null,
-        "meta": {
-          "day": 0,
-          "week": 2,
-          "month": 8,
-          "value": 2167,
-          "headcounts": 20
-        }
-      },
-      {
         "code": "V866",
         "name": "Marco Plá",
         "crmTab": "Marco Plá - V866",
