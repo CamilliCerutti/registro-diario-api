@@ -386,6 +386,23 @@
           "value": 2167,
           "headcounts": 20
         }
+      },
+      {
+        "code": "V1118",
+        "name": "Adson dos Santos Muniz",
+        "crmTab": "Adson Muniz - V1118",
+        "fixedCost": 1500,
+        "isSupervisor": false,
+        "hasRec": false,
+        "startDate": "2026-06-01",
+        "exitDate": null,
+        "meta": {
+          "day": 0,
+          "week": 2,
+          "month": 8,
+          "value": 2167,
+          "headcounts": 20
+        }
       }
     ],
     "groups": [
