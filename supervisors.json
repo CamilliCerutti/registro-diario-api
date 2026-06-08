@@ -303,23 +303,6 @@
         }
       },
       {
-        "code": "V558",
-        "name": "João Cordovil",
-        "crmTab": "João Vitor Cordovil - V558",
-        "fixedCost": 1500,
-        "isSupervisor": false,
-        "hasRec": false,
-        "startDate": null,
-        "exitDate": null,
-        "meta": {
-          "day": 0,
-          "week": 2,
-          "month": 8,
-          "value": 2167,
-          "headcounts": 20
-        }
-      },
-      {
         "code": "V973",
         "name": "Magali Aparecida",
         "crmTab": "Magali Aparecida - V973",
@@ -465,8 +448,7 @@
         "hcPerVendor": 11,
         "vendorCodes": [
           "V109",
-          "V869",
-          "V558"
+          "V869"
         ],
         "immersionIds": [
           "1778419422408"
