@@ -13,6 +13,7 @@
         "crmTab": "Henrique Brito - V823",
         "fixedCost": 1500,
         "isSupervisor": false,
+        "hasRec": true,
         "startDate": "2025-12-22",
         "exitDate": null,
         "meta": {
