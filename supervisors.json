@@ -253,23 +253,6 @@
         }
       },
       {
-        "code": "V109",
-        "name": "Pedro Folador",
-        "crmTab": "Pedro Folador - V109",
-        "fixedCost": 1500,
-        "isSupervisor": false,
-        "hasRec": false,
-        "startDate": null,
-        "exitDate": null,
-        "meta": {
-          "day": 0,
-          "week": 2,
-          "month": 8,
-          "value": 2167,
-          "headcounts": 20
-        }
-      },
-      {
         "code": "V431",
         "name": "Yolanda",
         "crmTab": "Yolanda Rocha - V431",
@@ -413,9 +396,7 @@
         "color": "#4c9fff",
         "hcGoal": 32,
         "hcPerVendor": 11,
-        "vendorCodes": [
-          "V109"
-        ],
+        "vendorCodes": [],
         "immersionIds": [
           "1778419422408"
         ],
