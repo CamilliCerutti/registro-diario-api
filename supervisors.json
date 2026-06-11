@@ -497,6 +497,23 @@
           "value": 2167,
           "headcounts": 20
         }
+      },
+      {
+        "code": "V1129",
+        "name": "Renata Ayala Araujo",
+        "crmTab": "Renata Ayala",
+        "fixedCost": 1500,
+        "isSupervisor": false,
+        "hasRec": false,
+        "startDate": "2026-06-10",
+        "exitDate": null,
+        "meta": {
+          "day": 0,
+          "week": 2,
+          "month": 8,
+          "value": 2167,
+          "headcounts": 20
+        }
       }
     ],
     "groups": []
