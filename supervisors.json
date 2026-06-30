@@ -370,6 +370,23 @@
           "value": 2167,
           "headcounts": 20
         }
+      },
+      {
+        "code": "V877",
+        "name": "WANDERLEY ROCHA DE JESUS",
+        "crmTab": "Wanderley Rocha - V877",
+        "fixedCost": 1500,
+        "isSupervisor": false,
+        "hasRec": false,
+        "startDate": "2026-01-30",
+        "exitDate": null,
+        "meta": {
+          "day": 0,
+          "week": 2,
+          "month": 8,
+          "value": 2167,
+          "headcounts": 20
+        }
       }
     ],
     "groups": [
