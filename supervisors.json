@@ -387,6 +387,23 @@
           "value": 2167,
           "headcounts": 20
         }
+      },
+      {
+        "code": "V849",
+        "name": "Adriano Pasini Ferreira",
+        "crmTab": "Adriano Pasini - V849",
+        "fixedCost": 1500,
+        "isSupervisor": false,
+        "hasRec": false,
+        "startDate": "2026-01-12",
+        "exitDate": null,
+        "meta": {
+          "day": 0,
+          "week": 2,
+          "month": 8,
+          "value": 2167,
+          "headcounts": 20
+        }
       }
     ],
     "groups": [
