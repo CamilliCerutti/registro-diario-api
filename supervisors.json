@@ -404,6 +404,23 @@
           "value": 2167,
           "headcounts": 20
         }
+      },
+      {
+        "code": "V1159",
+        "name": "Jéssica Lorrany Cardoso",
+        "crmTab": "Jéssica Lorrany - V1159",
+        "fixedCost": 1500,
+        "isSupervisor": false,
+        "hasRec": false,
+        "startDate": "2026-06-24",
+        "exitDate": null,
+        "meta": {
+          "day": 0,
+          "week": 2,
+          "month": 8,
+          "value": 2167,
+          "headcounts": 20
+        }
       }
     ],
     "groups": [
