@@ -172,23 +172,6 @@
           "value": 2167,
           "headcounts": 20
         }
-      },
-      {
-        "code": "V1121",
-        "name": "Andresa Jardins",
-        "crmTab": "Andresa Jardins - V1121",
-        "fixedCost": 1500,
-        "isSupervisor": false,
-        "hasRec": false,
-        "startDate": null,
-        "exitDate": null,
-        "meta": {
-          "day": 0,
-          "week": 2,
-          "month": 8,
-          "value": 2167,
-          "headcounts": 20
-        }
       }
     ],
     "groups": []
