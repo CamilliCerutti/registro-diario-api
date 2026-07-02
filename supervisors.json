@@ -8,23 +8,6 @@
     "supervisorCode": "V737",
     "vendors": [
       {
-        "code": "V823",
-        "name": "Henrique Brito",
-        "crmTab": "Henrique Brito - V823",
-        "fixedCost": 1500,
-        "isSupervisor": false,
-        "hasRec": true,
-        "startDate": "2025-12-22",
-        "exitDate": null,
-        "meta": {
-          "day": 0,
-          "week": 2,
-          "month": 8,
-          "value": 2167,
-          "headcounts": 20
-        }
-      },
-      {
         "code": "V866",
         "name": "Marco Plá",
         "crmTab": "Marco Plá - V866",
