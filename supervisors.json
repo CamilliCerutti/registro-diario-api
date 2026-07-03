@@ -542,7 +542,7 @@
         "crmTab": "CAMILA DESCHAMPS-V832",
         "fixedCost": 1500,
         "isSupervisor": true,
-        "hasRec": true,
+        "hasRec": false,
         "startDate": "2026-01-05",
         "exitDate": null,
         "meta": {
