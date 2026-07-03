@@ -542,7 +542,7 @@
         "crmTab": "Camila Deschamps-V832",
         "fixedCost": 1500,
         "isSupervisor": true,
-        "hasRec": false,
+        "hasRec": true,
         "startDate": "2026-01-05",
         "exitDate": null,
         "meta": {
