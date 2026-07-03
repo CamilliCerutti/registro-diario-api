@@ -436,7 +436,7 @@
         "crmTab": "Cleiton Vieira - V1079",
         "fixedCost": 1500,
         "isSupervisor": false,
-        "hasRec": false,
+        "hasRec": true,
         "startDate": "2026-05-20",
         "exitDate": null,
         "meta": {
