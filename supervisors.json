@@ -525,7 +525,25 @@
     "color": "#454545",
     "crmSheetId": "1qYr4U2wVPJx1Il8ku5vRuGb9dfBQYIG8fx47Qhgg1v4",
     "supervisorCode": "V823",
-    "vendors": [],
+    "vendors": [
+      {
+        "code": "V1173",
+        "name": "Pamela Cristina de Souza Zaleski",
+        "crmTab": "Pamela Zaleski",
+        "fixedCost": 1500,
+        "isSupervisor": false,
+        "hasRec": false,
+        "startDate": "2026-07-03",
+        "exitDate": null,
+        "meta": {
+          "day": 0,
+          "week": 2,
+          "month": 8,
+          "value": 2167,
+          "headcounts": 20
+        }
+      }
+    ],
     "groups": []
   },
   {
