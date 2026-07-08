@@ -414,23 +414,6 @@
         }
       },
       {
-        "code": "V1083",
-        "name": "Débora Criste",
-        "crmTab": "Débora Criste - V1083",
-        "fixedCost": 1500,
-        "isSupervisor": false,
-        "hasRec": false,
-        "startDate": "2026-05-20",
-        "exitDate": null,
-        "meta": {
-          "day": 0,
-          "week": 2,
-          "month": 8,
-          "value": 2167,
-          "headcounts": 20
-        }
-      },
-      {
         "code": "V1079",
         "name": "Cleiton Vieira",
         "crmTab": "Cleiton Vieira - V1079",
