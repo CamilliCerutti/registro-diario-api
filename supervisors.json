@@ -446,6 +446,23 @@
           "value": 2167,
           "headcounts": 20
         }
+      },
+      {
+        "code": "V1157",
+        "name": "Daniel Gonçalves",
+        "crmTab": "Daniel Gonçalves - V1157",
+        "fixedCost": 1500,
+        "isSupervisor": false,
+        "hasRec": false,
+        "startDate": "2026-06-30",
+        "exitDate": null,
+        "meta": {
+          "day": 0,
+          "week": 2,
+          "month": 8,
+          "value": 2167,
+          "headcounts": 20
+        }
       }
     ],
     "groups": []
