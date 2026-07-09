@@ -517,7 +517,7 @@
         "isSupervisor": false,
         "hasRec": false,
         "startDate": "2026-07-03",
-        "exitDate": null,
+        "exitDate": "2026-07-09",
         "meta": {
           "day": 0,
           "week": 2,
@@ -535,8 +535,7 @@
         "hcGoal": 2,
         "hcPerVendor": 1,
         "vendorCodes": [
-          "V1173",
-          "V1166"
+          "V1173"
         ],
         "immersionIds": [
           "1779131325474"
