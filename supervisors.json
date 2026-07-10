@@ -511,5 +511,15 @@
       }
     ],
     "groups": []
+  },
+  {
+    "id": "cla3d",
+    "name": "Henrique Brito",
+    "teamName": "Clã 3D",
+    "color": "#212623",
+    "crmSheetId": "1qYr4U2wVPJx1Il8ku5vRuGb9dfBQYIG8fx47Qhgg1v4",
+    "supervisorCode": "V823",
+    "vendors": [],
+    "groups": []
   }
 ]
