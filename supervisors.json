@@ -483,33 +483,5 @@
       }
     ],
     "groups": []
-  },
-  {
-    "id": "start",
-    "name": "Camila Deschamps da Silva Cardoso",
-    "teamName": "Start",
-    "color": "#d3cd22",
-    "crmSheetId": "1prDVB8WL2QMH5JRItsmqmlXk_fHlRB7uhO1t_iiZqRE",
-    "supervisorCode": "V832",
-    "vendors": [
-      {
-        "code": "V832",
-        "name": "Camila Deschamps da Silva Cardoso",
-        "crmTab": "Camila Deschamps - V832",
-        "fixedCost": 1500,
-        "isSupervisor": true,
-        "hasRec": true,
-        "startDate": "2026-01-05",
-        "exitDate": null,
-        "meta": {
-          "day": 0,
-          "week": 2,
-          "month": 8,
-          "value": 2167,
-          "headcounts": 20
-        }
-      }
-    ],
-    "groups": []
   }
 ]
