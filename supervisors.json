@@ -519,25 +519,7 @@
     "color": "#212623",
     "crmSheetId": "1qYr4U2wVPJx1Il8ku5vRuGb9dfBQYIG8fx47Qhgg1v4",
     "supervisorCode": "V823",
-    "vendors": [
-      {
-        "code": "V823",
-        "name": "Henrique Brito",
-        "crmTab": "https://docs.google.com/spreadsheets/d/1qYr4U2wVPJx1Il8ku5vRuGb9dfBQYIG8fx47Qhgg1v4/edit?gid=630244702#gid=630244702",
-        "fixedCost": 1500,
-        "isSupervisor": true,
-        "hasRec": true,
-        "startDate": "2025-12-22",
-        "exitDate": null,
-        "meta": {
-          "day": 0,
-          "week": 2,
-          "month": 8,
-          "value": 2167,
-          "headcounts": 20
-        }
-      }
-    ],
+    "vendors": [],
     "groups": []
   }
 ]
