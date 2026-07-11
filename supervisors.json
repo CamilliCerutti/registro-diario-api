@@ -519,7 +519,25 @@
     "color": "#212623",
     "crmSheetId": "1qYr4U2wVPJx1Il8ku5vRuGb9dfBQYIG8fx47Qhgg1v4",
     "supervisorCode": "V823",
-    "vendors": [],
+    "vendors": [
+      {
+        "code": "V1175",
+        "name": "Luiz Moises",
+        "crmTab": "https://docs.google.com/spreadsheets/d/1qYr4U2wVPJx1Il8ku5vRuGb9dfBQYIG8fx47Qhgg1v4/edit?usp=sharing",
+        "fixedCost": 1500,
+        "isSupervisor": false,
+        "hasRec": false,
+        "startDate": "2026-07-09",
+        "exitDate": null,
+        "meta": {
+          "day": 0,
+          "week": 2,
+          "month": 8,
+          "value": 2167,
+          "headcounts": 20
+        }
+      }
+    ],
     "groups": []
   }
 ]
