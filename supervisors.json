@@ -571,6 +571,19 @@
         ],
         "periodoInicio": "2026-07-11",
         "periodoFim": "2026-07-23"
+      },
+      {
+        "id": "1784033602264",
+        "name": "IMLS - Aracaju",
+        "color": "#316eb4",
+        "hcGoal": 2,
+        "hcPerVendor": 2,
+        "vendorCodes": [
+          "V1175"
+        ],
+        "immersionIds": [],
+        "periodoInicio": "2026-07-14",
+        "periodoFim": "2026-07-30"
       }
     ]
   }
