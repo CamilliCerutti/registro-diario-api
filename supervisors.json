@@ -139,6 +139,23 @@
           "value": 2167,
           "headcounts": 20
         }
+      },
+      {
+        "code": "V1240",
+        "name": "Gabrielle",
+        "crmTab": "Gabrielle Alexandre - V1240",
+        "fixedCost": 1500,
+        "isSupervisor": false,
+        "hasRec": false,
+        "startDate": null,
+        "exitDate": null,
+        "meta": {
+          "day": 0,
+          "week": 2,
+          "month": 8,
+          "value": 2167,
+          "headcounts": 20
+        }
       }
     ],
     "groups": []
