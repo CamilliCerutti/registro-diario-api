@@ -90,22 +90,6 @@
         }
       },
       {
-        "code": "V1054",
-        "name": "Indyra Matos",
-        "crmTab": "Indyra Matos - V1054",
-        "fixedCost": 1500,
-        "isSupervisor": false,
-        "startDate": "2026-05-06",
-        "exitDate": null,
-        "meta": {
-          "day": 0,
-          "week": 2,
-          "month": 11,
-          "value": 2164,
-          "headcounts": 22
-        }
-      },
-      {
         "code": "V737",
         "name": "Camilli Cerutti",
         "crmTab": "Camilli Cerutti - V737",
