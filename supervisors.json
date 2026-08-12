@@ -405,6 +405,23 @@
           "value": 2167,
           "headcounts": 20
         }
+      },
+      {
+        "code": "V1176",
+        "name": "Raquel Nascimento Remigio",
+        "crmTab": "Raquel Remigio - V1176",
+        "fixedCost": 1500,
+        "isSupervisor": false,
+        "hasRec": false,
+        "startDate": "2026-07-17",
+        "exitDate": null,
+        "meta": {
+          "day": 0,
+          "week": 2,
+          "month": 8,
+          "value": 2167,
+          "headcounts": 20
+        }
       }
     ],
     "groups": [
