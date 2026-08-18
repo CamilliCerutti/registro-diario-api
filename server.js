@@ -337,9 +337,9 @@ function cabecalhoRelatorio(sup, semana) {
 }
 
 // ============================================================
-// MICROGERENCIAMENTO — quadro de hora em hora
+// MICROGERENCIAMENTO — log de conferências (cada uma com o horário exato em que foi feita)
 // ============================================================
-const MICRO_HORAS = ['09','10','11','12','13','15','16','17','18','20','21','22'];
+const HORA_HMS_REGEX = /^([01]\d|2[0-3]):[0-5]\d:[0-5]\d$/;
 const MICRO_RETENCAO_DIAS = 60; // evita o micro.json crescer sem limite
 
 function limparMicroAntigo() {
@@ -664,31 +664,32 @@ app.get('/api/relatorio-semanal', async (req, res) => {
   } catch (e) { res.status(500).json({ erro: e.message }); }
 });
 
-// Quadro de microgerenciamento de um dia (hora em hora)
+// Log de microgerenciamento de um dia — { [vendorCode]: [ {hora, hf, ligacoes, conectado, ts}, ... ] }
 app.get('/api/micro', (req, res) => {
   const { team, data } = req.query;
   if (!checkTeamAdmin(req, res, team)) return;
   if (!data) return res.status(400).json({ erro: 'data (YYYY-MM-DD) é obrigatória' });
-  res.json({ horas: MICRO_HORAS, dados: (MICRO[team] || {})[data] || {} });
+  res.json({ dados: (MICRO[team] || {})[data] || {} });
 });
 
-// Salvar uma célula do microgerenciamento (hora + vendedor)
+// Registra uma nova conferência (sempre adiciona ao log, no horário informado pelo cliente)
 app.post('/api/micro', async (req, res) => {
   const { team, data, hora, vendorCode, hf, ligacoes, conectado } = req.body || {};
   if (!checkTeamAdmin(req, res, team)) return;
   try {
     if (!data || !hora || !vendorCode) return res.status(400).json({ erro: 'data, hora e vendorCode são obrigatórios' });
-    if (!MICRO_HORAS.includes(hora)) return res.status(400).json({ erro: `hora inválida — use uma de: ${MICRO_HORAS.join(', ')}` });
+    if (!HORA_HMS_REGEX.test(hora)) return res.status(400).json({ erro: 'hora deve estar no formato HH:MM:SS' });
 
     if (!MICRO[team]) MICRO[team] = {};
     if (!MICRO[team][data]) MICRO[team][data] = {};
-    if (!MICRO[team][data][hora]) MICRO[team][data][hora] = {};
-    MICRO[team][data][hora][vendorCode] = {
+    if (!MICRO[team][data][vendorCode]) MICRO[team][data][vendorCode] = [];
+    MICRO[team][data][vendorCode].push({
+      hora,
       hf:        parseInt(hf) || 0,
       ligacoes:  parseInt(ligacoes) || 0,
       conectado: parseInt(conectado) || 0,
       ts: new Date().toISOString(),
-    };
+    });
 
     limparMicroAntigo();
     res.json({ ok: true, savedToGitHub: await ghSave('micro.json', MICRO) });
