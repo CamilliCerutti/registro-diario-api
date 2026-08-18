@@ -265,6 +265,8 @@ function segundosParaHMS(s) {
 
 // Busca a aba inteira (B:S) de cada vendedor UMA vez e indexa por data,
 // pra poder montar relatório de 1 dia ou de 7 dias sem refazer chamadas ao Sheets.
+// Se a leitura de algum vendedor falhar (rede, rate limit do Sheets), NÃO tratamos
+// como "sem dados" — isso geraria um relatório com zeros sem avisar ninguém.
 async function coletarProdutividade(sheets, sup, dias) {
   const vendors = (sup.vendors || []).filter(v => !v.exitDate);
   const porVendedor = await Promise.all(vendors.map(async v => {
@@ -285,13 +287,15 @@ async function coletarProdutividade(sheets, sup, dias) {
           hcRC:       v.hasRec ? (parseInt(row[17]) || 0) : 0, // coluna S
         };
       });
-      return { name: v.name, porDia };
+      return { name: v.name, porDia, ok: true };
     } catch (e) {
-      return { name: v.name, porDia: {}, erro: e.message };
+      return { name: v.name, porDia: {}, ok: false, erro: e.message };
     }
   }));
 
-  return dias.map(dia => {
+  const comErro = porVendedor.filter(v => !v.ok).map(v => ({ name: v.name, erro: v.erro }));
+
+  const blocos = dias.map(dia => {
     const t = dia.getTime();
     const itens = porVendedor.map(v => {
       const dd = v.porDia[t] || { hfSegundos: 0, hcVA: 0, hcRC: 0 };
@@ -300,6 +304,13 @@ async function coletarProdutividade(sheets, sup, dias) {
     });
     return montarBlocoDia(dia, itens);
   });
+
+  return { blocos, comErro };
+}
+
+function avisoErro(comErro) {
+  if (!comErro.length) return '';
+  return `⚠️ Não foi possível carregar os dados de: ${comErro.map(v => v.name).join(', ')} — os números abaixo estão incompletos. Tente gerar de novo em alguns segundos.\n\n`;
 }
 
 function montarBlocoDia(dia, itens) {
@@ -573,15 +584,17 @@ app.get('/api/relatorio-diario', async (req, res) => {
     dataAlvo.setHours(0, 0, 0, 0);
     if (isNaN(dataAlvo)) return res.status(400).json({ erro: 'Data inválida' });
 
-    const sheets  = await getSheetsClient();
-    const semana  = semanaComercialDe(dataAlvo);
-    const [bloco] = await coletarProdutividade(sheets, sup, [dataAlvo]);
-    const texto   = `${cabecalhoRelatorio(sup, semana)}\n\n${bloco.texto}`;
+    const sheets = await getSheetsClient();
+    const semana = semanaComercialDe(dataAlvo);
+    const { blocos, comErro } = await coletarProdutividade(sheets, sup, [dataAlvo]);
+    const bloco  = blocos[0];
+    const texto  = `${avisoErro(comErro)}${cabecalhoRelatorio(sup, semana)}\n\n${bloco.texto}`;
 
     res.json({
       texto,
       semana: { numero: semana.numero, inicio: dataParaBR(semana.inicio), fim: dataParaBR(semana.fim) },
       dia: bloco,
+      avisos: comErro,
     });
   } catch (e) { res.status(500).json({ erro: e.message }); }
 });
@@ -609,7 +622,7 @@ app.get('/api/relatorio-semanal', async (req, res) => {
     }
 
     const sheets = await getSheetsClient();
-    const blocos = await coletarProdutividade(sheets, sup, dias);
+    const { blocos, comErro } = await coletarProdutividade(sheets, sup, dias);
     const comDados = blocos.filter(b => b.temDados);
 
     const totalHC = comDados.reduce((s, b) => s + b.totalHC, 0);
@@ -618,13 +631,14 @@ app.get('/api/relatorio-semanal', async (req, res) => {
     const totalHF = comDados.reduce((s, b) => s + b.totalHF, 0);
 
     const rodape = `📊 Total Geral da Semana\nHC: ${totalHC} (VA: ${totalVA} / RC: ${totalRC})\nHF: ${segundosParaHMS(totalHF)}`;
-    const texto  = [cabecalhoRelatorio(sup, semana), ...comDados.map(b => b.texto), rodape].join('\n\n---\n\n');
+    const texto  = avisoErro(comErro) + [cabecalhoRelatorio(sup, semana), ...comDados.map(b => b.texto), rodape].join('\n\n---\n\n');
 
     res.json({
       texto,
       semana: { numero: semana.numero, inicio: dataParaBR(semana.inicio), fim: dataParaBR(semana.fim) },
       totalHC, totalVA, totalRC, totalHF: segundosParaHMS(totalHF),
       dias: comDados.length,
+      avisos: comErro,
     });
   } catch (e) { res.status(500).json({ erro: e.message }); }
 });
