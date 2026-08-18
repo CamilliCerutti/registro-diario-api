@@ -237,6 +237,89 @@ function formatarResultado(totais) {
 }
 
 // ============================================================
+// RELATÓRIO DE PRODUTIVIDADE — Semana Comercial
+// Semana Comercial 01 começa em 31/12/2025 (quarta), blocos de 7 dias
+// ============================================================
+const ANCORA_SEMANA_COMERCIAL = new Date(2025, 11, 31);
+const DIAS_SEMANA = ['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'];
+
+function semanaComercialDe(date) {
+  const d = new Date(date); d.setHours(0, 0, 0, 0);
+  const diffDias = Math.round((d - ANCORA_SEMANA_COMERCIAL) / 86400000);
+  const idx = Math.floor(diffDias / 7);
+  const inicio = new Date(ANCORA_SEMANA_COMERCIAL); inicio.setDate(inicio.getDate() + idx * 7);
+  const fim = new Date(inicio); fim.setDate(fim.getDate() + 6);
+  return { numero: idx + 1, inicio, fim };
+}
+
+function dataParaBR(d) {
+  const dd = String(d.getDate()).padStart(2, '0');
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  return `${dd}/${mm}/${d.getFullYear()}`;
+}
+
+function segundosParaHMS(s) {
+  const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
+  return `${h}:${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+}
+
+// Busca a aba inteira (B:S) de cada vendedor UMA vez e indexa por data,
+// pra poder montar relatório de 1 dia ou de 7 dias sem refazer chamadas ao Sheets.
+async function coletarProdutividade(sheets, sup, dias) {
+  const vendors = (sup.vendors || []).filter(v => !v.exitDate);
+  const porVendedor = await Promise.all(vendors.map(async v => {
+    try {
+      const result = await sheets.spreadsheets.values.get({
+        spreadsheetId: sup.crmSheetId,
+        range: `'${v.crmTab}'!B:S`,
+      });
+      const rows = result.data.values || [];
+      const porDia = {};
+      rows.forEach((row, i) => {
+        const dt = datePorLinha(i + 1);
+        if (!dt) return;
+        dt.setHours(0, 0, 0, 0);
+        porDia[dt.getTime()] = {
+          hfSegundos: parseTempo(row[1]),               // coluna C
+          hcVA:       parseInt(row[4]) || 0,             // coluna F
+          hcRC:       v.hasRec ? (parseInt(row[17]) || 0) : 0, // coluna S
+        };
+      });
+      return { name: v.name, porDia };
+    } catch (e) {
+      return { name: v.name, porDia: {}, erro: e.message };
+    }
+  }));
+
+  return dias.map(dia => {
+    const t = dia.getTime();
+    const itens = porVendedor.map(v => {
+      const dd = v.porDia[t] || { hfSegundos: 0, hcVA: 0, hcRC: 0 };
+      const hc = dd.hcVA + dd.hcRC;
+      return { name: v.name, hcVA: dd.hcVA, hcRC: dd.hcRC, hc, hfSegundos: dd.hfSegundos, temDados: hc > 0 || dd.hfSegundos > 0 };
+    });
+    return montarBlocoDia(dia, itens);
+  });
+}
+
+function montarBlocoDia(dia, itens) {
+  const ativos   = itens.filter(i => i.temDados);
+  const totalHC  = ativos.reduce((s, i) => s + i.hc, 0);
+  const totalVA  = ativos.reduce((s, i) => s + i.hcVA, 0);
+  const totalRC  = ativos.reduce((s, i) => s + i.hcRC, 0);
+  const totalHF  = ativos.reduce((s, i) => s + i.hfSegundos, 0);
+  const linhas   = ativos
+    .map(i => `${i.name.split(' ')[0]} | HC: ${i.hc} | HF: ${segundosParaHMS(i.hfSegundos)}`)
+    .join('\n');
+  const texto = `📅 ${dataParaBR(dia)} (${DIAS_SEMANA[dia.getDay()]})\n\n${linhas || '_Nenhum dado registrado_'}\n\n🔹 Total do dia: HC: ${totalHC} (VA: ${totalVA} / RC: ${totalRC}) | HF: ${segundosParaHMS(totalHF)}`;
+  return { texto, totalHC, totalVA, totalRC, totalHF, temDados: ativos.length > 0 };
+}
+
+function cabecalhoRelatorio(sup, semana) {
+  return `📊 Produtividade Diária – Semana Comercial ${String(semana.numero).padStart(2, '0')} (${dataParaBR(semana.inicio)} a ${dataParaBR(semana.fim)})\n👤 LÍDER: ${sup.name}`;
+}
+
+// ============================================================
 // AUTH / UTILS
 // ============================================================
 function checkAdmin(req, res) {
@@ -473,6 +556,76 @@ app.get('/vendas-time', async (req, res) => {
     );
     const totalGeral = resultados.reduce((acc, v) => acc + v.totalVendas, 0);
     res.json({ data, totalGeral, resultados });
+  } catch (e) { res.status(500).json({ erro: e.message }); }
+});
+
+// Relatório diário de produtividade (texto pronto pra colar) — 1 bloco de dia
+app.get('/api/relatorio-diario', async (req, res) => {
+  const { team, data } = req.query;
+  if (!checkTeamAdmin(req, res, team)) return;
+  try {
+    if (!data) return res.status(400).json({ erro: 'data (DD/MM/YYYY) é obrigatória' });
+    const sup = getTeam(team);
+    if (!sup) return res.status(404).json({ erro: 'Time não encontrado' });
+
+    const [d, m, a] = data.split('/');
+    const dataAlvo = new Date(parseInt(a), parseInt(m) - 1, parseInt(d));
+    dataAlvo.setHours(0, 0, 0, 0);
+    if (isNaN(dataAlvo)) return res.status(400).json({ erro: 'Data inválida' });
+
+    const sheets  = await getSheetsClient();
+    const semana  = semanaComercialDe(dataAlvo);
+    const [bloco] = await coletarProdutividade(sheets, sup, [dataAlvo]);
+    const texto   = `${cabecalhoRelatorio(sup, semana)}\n\n${bloco.texto}`;
+
+    res.json({
+      texto,
+      semana: { numero: semana.numero, inicio: dataParaBR(semana.inicio), fim: dataParaBR(semana.fim) },
+      dia: bloco,
+    });
+  } catch (e) { res.status(500).json({ erro: e.message }); }
+});
+
+// Relatório semanal de produtividade — acumula os dias já lançados da semana comercial até a data informada
+app.get('/api/relatorio-semanal', async (req, res) => {
+  const { team, data } = req.query;
+  if (!checkTeamAdmin(req, res, team)) return;
+  try {
+    if (!data) return res.status(400).json({ erro: 'data (DD/MM/YYYY) é obrigatória' });
+    const sup = getTeam(team);
+    if (!sup) return res.status(404).json({ erro: 'Time não encontrado' });
+
+    const [d, m, a] = data.split('/');
+    const dataRef = new Date(parseInt(a), parseInt(m) - 1, parseInt(d));
+    dataRef.setHours(0, 0, 0, 0);
+    if (isNaN(dataRef)) return res.status(400).json({ erro: 'Data inválida' });
+
+    const semana = semanaComercialDe(dataRef);
+    const dias   = [];
+    for (let i = 0; i < 7; i++) {
+      const dia = new Date(semana.inicio); dia.setDate(dia.getDate() + i);
+      if (dia > dataRef) break;
+      dias.push(dia);
+    }
+
+    const sheets = await getSheetsClient();
+    const blocos = await coletarProdutividade(sheets, sup, dias);
+    const comDados = blocos.filter(b => b.temDados);
+
+    const totalHC = comDados.reduce((s, b) => s + b.totalHC, 0);
+    const totalVA = comDados.reduce((s, b) => s + b.totalVA, 0);
+    const totalRC = comDados.reduce((s, b) => s + b.totalRC, 0);
+    const totalHF = comDados.reduce((s, b) => s + b.totalHF, 0);
+
+    const rodape = `📊 Total Geral da Semana\nHC: ${totalHC} (VA: ${totalVA} / RC: ${totalRC})\nHF: ${segundosParaHMS(totalHF)}`;
+    const texto  = [cabecalhoRelatorio(sup, semana), ...comDados.map(b => b.texto), rodape].join('\n\n---\n\n');
+
+    res.json({
+      texto,
+      semana: { numero: semana.numero, inicio: dataParaBR(semana.inicio), fim: dataParaBR(semana.fim) },
+      totalHC, totalVA, totalRC, totalHF: segundosParaHMS(totalHF),
+      dias: comDados.length,
+    });
   } catch (e) { res.status(500).json({ erro: e.message }); }
 });
 
