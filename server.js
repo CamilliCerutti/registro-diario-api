@@ -35,6 +35,7 @@ const SERVICE_ACCOUNT_EMAIL = 'registro-diario@registro-diario-495519.iam.gservi
 // ============================================================
 let SUPERVISORS   = [];
 let GLOBAL_CONFIG = { immersions: [], updatedAt: null };
+let MICRO         = {}; // { [teamId]: { [dataISO]: { [hora]: { [vendorCode]: {hf,ligacoes,conectado,ts} } } } }
 
 // ============================================================
 // GITHUB PERSISTENCE
@@ -113,6 +114,11 @@ async function loadFromGitHub() {
   if (c && c.data) {
     GLOBAL_CONFIG = c.data;
     console.log('✅ Config carregado');
+  }
+  const mc = await ghGet('micro.json');
+  if (mc && mc.data) {
+    MICRO = mc.data;
+    console.log('✅ Micro carregado');
   }
 }
 
@@ -328,6 +334,21 @@ function montarBlocoDia(dia, itens) {
 
 function cabecalhoRelatorio(sup, semana) {
   return `📊 Produtividade Diária – Semana Comercial ${String(semana.numero).padStart(2, '0')} (${dataParaBR(semana.inicio)} a ${dataParaBR(semana.fim)})\n👤 LÍDER: ${sup.name}`;
+}
+
+// ============================================================
+// MICROGERENCIAMENTO — quadro de hora em hora
+// ============================================================
+const MICRO_HORAS = ['09','10','11','12','13','15','16','17','18','20','21','22'];
+const MICRO_RETENCAO_DIAS = 60; // evita o micro.json crescer sem limite
+
+function limparMicroAntigo() {
+  const limite = new Date(); limite.setHours(0, 0, 0, 0); limite.setDate(limite.getDate() - MICRO_RETENCAO_DIAS);
+  Object.keys(MICRO).forEach(teamId => {
+    Object.keys(MICRO[teamId] || {}).forEach(dataISO => {
+      if (new Date(dataISO) < limite) delete MICRO[teamId][dataISO];
+    });
+  });
 }
 
 // ============================================================
@@ -640,6 +661,37 @@ app.get('/api/relatorio-semanal', async (req, res) => {
       dias: comDados.length,
       avisos: comErro,
     });
+  } catch (e) { res.status(500).json({ erro: e.message }); }
+});
+
+// Quadro de microgerenciamento de um dia (hora em hora)
+app.get('/api/micro', (req, res) => {
+  const { team, data } = req.query;
+  if (!checkTeamAdmin(req, res, team)) return;
+  if (!data) return res.status(400).json({ erro: 'data (YYYY-MM-DD) é obrigatória' });
+  res.json({ horas: MICRO_HORAS, dados: (MICRO[team] || {})[data] || {} });
+});
+
+// Salvar uma célula do microgerenciamento (hora + vendedor)
+app.post('/api/micro', async (req, res) => {
+  const { team, data, hora, vendorCode, hf, ligacoes, conectado } = req.body || {};
+  if (!checkTeamAdmin(req, res, team)) return;
+  try {
+    if (!data || !hora || !vendorCode) return res.status(400).json({ erro: 'data, hora e vendorCode são obrigatórios' });
+    if (!MICRO_HORAS.includes(hora)) return res.status(400).json({ erro: `hora inválida — use uma de: ${MICRO_HORAS.join(', ')}` });
+
+    if (!MICRO[team]) MICRO[team] = {};
+    if (!MICRO[team][data]) MICRO[team][data] = {};
+    if (!MICRO[team][data][hora]) MICRO[team][data][hora] = {};
+    MICRO[team][data][hora][vendorCode] = {
+      hf:        parseInt(hf) || 0,
+      ligacoes:  parseInt(ligacoes) || 0,
+      conectado: parseInt(conectado) || 0,
+      ts: new Date().toISOString(),
+    };
+
+    limparMicroAntigo();
+    res.json({ ok: true, savedToGitHub: await ghSave('micro.json', MICRO) });
   } catch (e) { res.status(500).json({ erro: e.message }); }
 });
 
