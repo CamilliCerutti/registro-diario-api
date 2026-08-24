@@ -236,6 +236,7 @@ function formatarResultado(totais) {
   }
   return {
     diasComDados,
+    totalSegundos,
     totalHoras: `${th}h ${String(tm).padStart(2, '0')}min`,
     totalAtenderam, totalEntrevistas, totalHeadcounts,
     txAtend: `${txAtend}%`, txHead: `${txHead}%`, pace,
