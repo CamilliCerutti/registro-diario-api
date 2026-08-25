@@ -639,6 +639,23 @@
           "value": 2167,
           "headcounts": 20
         }
+      },
+      {
+        "code": "1269",
+        "name": "Antonio Matos",
+        "crmTab": "Antonio Matos",
+        "fixedCost": 1500,
+        "isSupervisor": false,
+        "hasRec": false,
+        "startDate": "2026-08-20",
+        "exitDate": null,
+        "meta": {
+          "day": 0,
+          "week": 2,
+          "month": 8,
+          "value": 2167,
+          "headcounts": 20
+        }
       }
     ],
     "groups": [
