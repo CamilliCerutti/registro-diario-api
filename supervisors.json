@@ -652,6 +652,23 @@
           "value": 2167,
           "headcounts": 20
         }
+      },
+      {
+        "code": "V823",
+        "name": "Henrique Brito",
+        "crmTab": "Henrique Brito",
+        "fixedCost": 1500,
+        "isSupervisor": true,
+        "hasRec": true,
+        "startDate": "2025-12-22",
+        "exitDate": null,
+        "meta": {
+          "day": 0,
+          "week": 2,
+          "month": 8,
+          "value": 2167,
+          "headcounts": 20
+        }
       }
     ],
     "groups": [
