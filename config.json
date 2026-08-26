@@ -1,12 +1,6 @@
 {
   "immersions": [
     {
-      "id": "1778419422408",
-      "name": "IMLS - SALVADOR",
-      "startDate": "2026-05-22",
-      "location": "Salvador, BA"
-    },
-    {
       "id": "1778419445277",
       "name": "IMLS - MACEIÓ",
       "startDate": "2026-05-29",
@@ -19,5 +13,5 @@
       "location": "São Paulo, SP"
     }
   ],
-  "updatedAt": "2026-08-26T01:58:04.133Z"
+  "updatedAt": "2026-08-26T01:58:06.089Z"
 }
