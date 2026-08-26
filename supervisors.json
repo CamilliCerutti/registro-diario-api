@@ -447,9 +447,7 @@
         "hcGoal": 32,
         "hcPerVendor": 11,
         "vendorCodes": [],
-        "immersionIds": [
-          "1778419422408"
-        ],
+        "immersionIds": [],
         "periodoInicio": "2026-05-07",
         "periodoFim": null
       }
