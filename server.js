@@ -395,6 +395,38 @@ app.get('/', (_, res) => res.json({
 
 app.get('/health', (_, res) => res.json({ ok: true, teams: SUPERVISORS.length }));
 
+// Debug: dump cru da aba de um vendedor — investigar duplicidade/linha errada sem adivinhar
+app.get('/debug/aba-raw', async (req, res) => {
+  if (!checkAdmin(req, res)) return;
+  try {
+    const { team, code } = req.query;
+    if (!team || !code) return res.status(400).json({ erro: 'team e code são obrigatórios' });
+    const sup = getTeam(team);
+    if (!sup) return res.status(404).json({ erro: 'Time não encontrado' });
+    const vendor = (sup.vendors || []).find(v => v.code === code);
+    if (!vendor) return res.status(404).json({ erro: 'Vendedor não encontrado' });
+
+    const sheets = await getSheetsClient();
+    const result = await sheets.spreadsheets.values.get({ spreadsheetId: sup.crmSheetId, range: `'${vendor.crmTab}'!A:H` });
+    const rows = result.data.values || [];
+    const linhas = rows.map((row, i) => {
+      const posicional = datePorLinha(i + 1);
+      return {
+        linha: i + 1,
+        A: row[0] || '', B_data: row[1] || '', C_hf: row[2] || '', D_atend: row[3] || '',
+        E_entrv: row[4] || '', F_hc: row[5] || '', G_cross: row[6] || '', H_coment: row[7] || '',
+        dataPosicional: posicional ? dataParaBR(posicional) : null,
+      };
+    });
+    // Aponta linhas cuja coluna B bate com o MESMO valor de outra linha (duplicidade de data)
+    const contagem = {};
+    linhas.forEach(l => { if (l.B_data) contagem[l.B_data] = (contagem[l.B_data]||0) + 1; });
+    const datasDuplicadas = Object.entries(contagem).filter(([,n]) => n > 1).map(([data,n]) => ({ data, ocorrencias: n }));
+
+    res.json({ vendor: vendor.name, crmTab: vendor.crmTab, crmSheetId: sup.crmSheetId, totalLinhas: rows.length, datasDuplicadas, linhas });
+  } catch (e) { res.status(500).json({ erro: e.message, stack: e.stack }); }
+});
+
 // Lista de times (sem dados sensíveis — usada pelo frontend para roteamento ?team=)
 app.get('/api/teams', (_, res) => {
   res.json(SUPERVISORS.map(s => ({
