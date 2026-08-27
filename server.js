@@ -408,10 +408,12 @@ app.get('/debug/aba-raw', async (req, res) => {
 
     const sheets = await getSheetsClient();
     const raw = req.query.raw === '1';
+    const formula = req.query.formula === '1';
     const result = await sheets.spreadsheets.values.get({
       spreadsheetId: sup.crmSheetId,
       range: `'${vendor.crmTab}'!A:H`,
       ...(raw && { valueRenderOption: 'UNFORMATTED_VALUE' }),
+      ...(formula && { valueRenderOption: 'FORMULA' }),
     });
     const rows = result.data.values || [];
     const cell = v => v === undefined || v === null ? '' : v; // preserva 0 (não vira '' como '0 || ""' faria)
