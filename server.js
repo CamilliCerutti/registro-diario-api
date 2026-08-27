@@ -407,14 +407,20 @@ app.get('/debug/aba-raw', async (req, res) => {
     if (!vendor) return res.status(404).json({ erro: 'Vendedor não encontrado' });
 
     const sheets = await getSheetsClient();
-    const result = await sheets.spreadsheets.values.get({ spreadsheetId: sup.crmSheetId, range: `'${vendor.crmTab}'!A:H` });
+    const raw = req.query.raw === '1';
+    const result = await sheets.spreadsheets.values.get({
+      spreadsheetId: sup.crmSheetId,
+      range: `'${vendor.crmTab}'!A:H`,
+      ...(raw && { valueRenderOption: 'UNFORMATTED_VALUE' }),
+    });
     const rows = result.data.values || [];
+    const cell = v => v === undefined || v === null ? '' : v; // preserva 0 (não vira '' como '0 || ""' faria)
     const linhas = rows.map((row, i) => {
       const posicional = datePorLinha(i + 1);
       return {
         linha: i + 1,
-        A: row[0] || '', B_data: row[1] || '', C_hf: row[2] || '', D_atend: row[3] || '',
-        E_entrv: row[4] || '', F_hc: row[5] || '', G_cross: row[6] || '', H_coment: row[7] || '',
+        A: cell(row[0]), B_data: cell(row[1]), C_hf: cell(row[2]), D_atend: cell(row[3]),
+        E_entrv: cell(row[4]), F_hc: cell(row[5]), G_cross: cell(row[6]), H_coment: cell(row[7]),
         dataPosicional: posicional ? dataParaBR(posicional) : null,
       };
     });
