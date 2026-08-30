@@ -703,6 +703,23 @@
           "value": 2167,
           "headcounts": 20
         }
+      },
+      {
+        "code": "V982",
+        "name": "Joao Vitor",
+        "crmTab": "Joao Vitor",
+        "fixedCost": 1500,
+        "isSupervisor": false,
+        "hasRec": false,
+        "startDate": null,
+        "exitDate": null,
+        "meta": {
+          "day": 0,
+          "week": 2,
+          "month": 8,
+          "value": 2167,
+          "headcounts": 20
+        }
       }
     ],
     "groups": []
