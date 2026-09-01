@@ -344,7 +344,7 @@
         "crmTab": "Pedro Henrique - V1135",
         "fixedCost": 1500,
         "isSupervisor": false,
-        "hasRec": false,
+        "hasRec": true,
         "startDate": "2026-06-15",
         "exitDate": null,
         "meta": {
