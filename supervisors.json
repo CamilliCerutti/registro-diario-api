@@ -456,6 +456,23 @@
           "value": 2167,
           "headcounts": 20
         }
+      },
+      {
+        "code": "V1102",
+        "name": "Gabriel Cornelio",
+        "crmTab": "Gabriel Cornelio - V1102",
+        "fixedCost": 1500,
+        "isSupervisor": false,
+        "hasRec": false,
+        "startDate": null,
+        "exitDate": null,
+        "meta": {
+          "day": 0,
+          "week": 2,
+          "month": 8,
+          "value": 2167,
+          "headcounts": 20
+        }
       }
     ],
     "groups": [
