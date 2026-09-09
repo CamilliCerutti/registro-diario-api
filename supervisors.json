@@ -648,7 +648,7 @@
         "crmTab": "Taciane Cristine - V1209",
         "fixedCost": 1500,
         "isSupervisor": false,
-        "hasRec": false,
+        "hasRec": true,
         "startDate": null,
         "exitDate": null,
         "meta": {
