@@ -140,6 +140,23 @@
           "value": 2167,
           "headcounts": 20
         }
+      },
+      {
+        "code": "V870",
+        "name": "Motta",
+        "crmTab": "Motta - V870",
+        "fixedCost": 1500,
+        "isSupervisor": false,
+        "hasRec": false,
+        "startDate": "2026-09-09",
+        "exitDate": null,
+        "meta": {
+          "day": 0,
+          "week": 2,
+          "month": 8,
+          "value": 2167,
+          "headcounts": 20
+        }
       }
     ],
     "groups": []
