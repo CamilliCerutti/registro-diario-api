@@ -24,22 +24,6 @@
         }
       },
       {
-        "code": "V881",
-        "name": "Tiane Brito",
-        "crmTab": "Tiane Brito - V881",
-        "fixedCost": 1800,
-        "isSupervisor": false,
-        "startDate": "2026-02-09",
-        "exitDate": null,
-        "meta": {
-          "day": 0,
-          "week": 2,
-          "month": 8,
-          "value": 2561,
-          "headcounts": 20
-        }
-      },
-      {
         "code": "V888",
         "name": "Ana Carolina",
         "crmTab": "Ana Carolina - V888",
