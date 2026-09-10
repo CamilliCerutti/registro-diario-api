@@ -723,23 +723,6 @@
         }
       },
       {
-        "code": "V1003",
-        "name": "Jennifer Lima",
-        "crmTab": "Jennifer Lima - V1003",
-        "fixedCost": 1500,
-        "isSupervisor": false,
-        "hasRec": false,
-        "startDate": null,
-        "exitDate": null,
-        "meta": {
-          "day": 0,
-          "week": 2,
-          "month": 8,
-          "value": 2167,
-          "headcounts": 20
-        }
-      },
-      {
         "code": "V420",
         "name": "Rose Tomaz",
         "crmTab": "Rose Tomaz - V420",
