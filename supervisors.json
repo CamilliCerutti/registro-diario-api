@@ -710,6 +710,23 @@
           "value": 2167,
           "headcounts": 20
         }
+      },
+      {
+        "code": "V1236",
+        "name": "Flávia Soares",
+        "crmTab": "Flávia Soares -  V1236",
+        "fixedCost": 1500,
+        "isSupervisor": false,
+        "hasRec": false,
+        "startDate": "2026-10-02",
+        "exitDate": null,
+        "meta": {
+          "day": 0,
+          "week": 2,
+          "month": 8,
+          "value": 2167,
+          "headcounts": 20
+        }
       }
     ],
     "groups": []
